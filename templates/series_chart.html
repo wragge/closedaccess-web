@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">Series</h1>
+          <h2>These are the record series containing the most closed files.</h2>
+          <ul class="nav nav-pills" role="tablist">
+            <li role="presentation" class="active"><a href="/series/" aria-controls="chart" role="tab"><i class="fa fa-bar-chart"></i></a></li>
+            <li role="presentation"><a href="/series/list/" aria-controls="list" role="tab"><i class="fa fa-th-list"></i></a></li>
+          </ul>
+          <p class="muted"><small id="hover-info">Click on a bar for more information</small></p>
+          <div id="series"><!-- Plotly chart will be drawn inside this DIV --></div>
+          
+          
+
+
+{% endblock %}
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+            var layout = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 1000, 
+                            margin: {l: 100, t: 30},
+                            bargap: 0.05,
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            }
+                        };
+            Plotly.newPlot('series', {{ data|tojson|safe }}, layout);
+            $('#series').on('plotly_click', function(event, data) {
+                var reason = data.points[0].data.y[data.points[0].pointNumber];
+                window.location.href = '/series/' + reason;
+                //$scope.$apply();
+            });
+
+          </script>
+{% endblock %}

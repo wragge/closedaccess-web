@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">{{ reason.reason }}</h1>
+          {% if reason.definition %}
+          <h2><i class="fa fa-quote-left"></i> {{ reason.definition }} <i class="fa fa-quote-right"></i><br><small>&mdash; {% if reason.source == 'act' %}<a href="http://www.austlii.edu.au/au/legis/cth/consol_act/aa198398/s33.html">Section {{ reason.reason}}</a> of the <em>Archives Act 1983</em>{% elif reason.source == 'recordsearch' %} RecordSearch note{% endif %}</small></h2>
+          {% endif %}
+
+          <div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <a href="/items?reason={{ reason.reason }}" class="circle-text closed">{{ reason.total }}</a> 
+              <h4>closed files</h4>
+              <span class="text-muted">cite this as a reason you're not allowed to see them</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <div class="circle-text">{{ reason.average_age }}</div>
+              <h4>years</h4>
+              <span class="text-muted">is the average age of closed files that cite this reason, based on the date of their earliest content</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <div class="circle-text">{{ reason.series|length }}</div>
+              <h4>series</h4>
+              <span class="text-muted">contain closed files that cite this reason</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
+              <h4>Label</h4>
+              <span class="text-muted">Something else</span>
+            </div>
+          </div>
+          
+          <h3><a href="/items?reason={{ reason.reason }}" class="circle-text">{{ reason.total }}</a> closed files cite this as a reason you&rsquo;re not allowed to see them.</h3>
+
+
+{% endblock %}

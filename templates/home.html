@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">Overview</h1>
+
+          <p class="lead">
+          Under the Australian <em><a href="http://www.austlii.edu.au/au/legis/cth/consol_act/aa198398/">Archives Act 1983</a></em> most Commonwealth records are opened to public scrutiny after twenty years (this was reduced from thirty years in 2010). But the Act also defines &lsquo;exempt&rsquo; records that can be withheld from the public for a variety of reasons, including the defence of national security, and the protection of individual privacy. Access under the Act is not an inevitable destination, but a process that may result in records with the access status of &lsquo;closed&rsquo;.
+          </p>
+
+          <p class="lead">Here you can explore these closed files. Why can't we look at them? How old are they? What are we really being protected against?</p>
+
+          <div class="row placeholders">
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/items/" class="circle-text closed">{{ harvest.total }}</a>
+              <h4>closed files</h4>
+              <span class="text-muted">on {{ harvest.harvest_date.strftime('%e %B %Y') }}</span>
+            </div>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/reasons/" class="circle-text">{{ harvest.total_reasons }}</a>
+              <h4>reasons</h4>
+              <span class="text-muted">why these files have been closed</span>
+            </div>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <div class="circle-text">{{ harvest.average_age }}</div>
+              <h4>years</h4>
+              <span class="text-muted">is the average age of these files<br>based on their date of their earliest content</span>
+            </div>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/series/" class="circle-text">{{ harvest.total_series }}</a>
+              <h4>series</h4>
+              <span class="text-muted">contain closed files</span>
+            </div>
+          </div>
+
+          <h2 class="sub-header">Here's some examples&hellip;</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Series</th>
+                  <th>Control Symbol</th>
+                  <th>Title</th>
+                  <th>Contents dates</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for item in items %}
+                <tr>
+                  <td>{{ item.series }}</td>
+                  <td>{{ item.control_symbol}}</td>
+                  <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
+                  <td>{{ item.contents_dates.date_str }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">{{ series.identifier }}</h1>
+          <h2>{{ series.title }}</h2>
+
+          <div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <a href="/items?series={{ series.identifier }}" class="circle-text closed">{{ totals.total }}</a> 
+              <h4>closed files</h4>
+              <span class="text-muted">are part of this series</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <div class="circle-text">{{ totals.average_age }}</div>
+              <h4>years</h4>
+              <span class="text-muted">is the average age of closed files in this series, based on the date of their earliest content</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <div class="circle-text">{{ totals.reasons|length }}</div>
+              <h4>reasons</h4>
+              <span class="text-muted">are cited by closed files in this series</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
+              <h4>Label</h4>
+              <span class="text-muted">Something else</span>
+            </div>
+          </div>
+          
+
+
+{% endblock %}

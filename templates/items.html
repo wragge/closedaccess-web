@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">Files</h1>
+          {{ pagination.info }}
+          {{ pagination.links }}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Series</th>
+                  <th>Control Symbol</th>
+                  <th>Title</th>
+                  <th>Contents dates</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for item in items %}
+                <tr>
+                  <td>{{ item.series }}</td>
+                  <td>{{ item.control_symbol}}</td>
+                  <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
+                  <td>{{ item.contents_dates.date_str }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+{% endblock %}
+{% block search_form %}
+<form action="/items/">
+  <div class="form-group">
+    <label for="q">Title keywords</label>
+    <input type="text" class="form-control" id="q" name="q" placeholder="keywords"{% if q %} value="{{ q }}"{% endif %}>
+  </div>
+  <div class="form-group">
+    <label for="reason">Reason</label>
+    <select id="reason" name="reason" class="form-control">
+      <option>All</option>
+    {% for option in reasons %}
+      <option{%if option.reason == reason %} selected="selected"{% endif %}>{{ option.reason }}</option>
+    {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
+{% endblock %}

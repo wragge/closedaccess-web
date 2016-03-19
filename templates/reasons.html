@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">Reasons</h1>
+          <h2>These are the reasons why you're not allowed to see closed files.</h2>
+
+          <ul class="nav nav-pills" role="tablist">
+            <li role="presentation" class="active"><a href="#chart" aria-controls="chart" role="tab" data-toggle="tab"><i class="fa fa-bar-chart"></i></a></li>
+            <li role="presentation"><a href="#list" aria-controls="list" role="tab" data-toggle="tab"><i class="fa fa-th-list"></i></a></li>
+          </ul>
+          
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="chart">
+                <p class="muted"><small id="hover-info">Click on a bar for more information</small></p>
+                <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="list">
+                <div class="table-responsive item-reasons">
+                    <table class="table">
+                      <tbody>
+                        <thead>
+                          <th>Reason</th>
+                          <th>Description</th>
+                          <th>Files</th>
+                        </thead>
+                          {% for reason in reasons.results %}
+                            <tr>
+                              <td style="white-space:nowrap;"><a href="/reasons/{{ reason.reason }}/">{{ reason.reason}}</a></td>
+                              <td>{% if reason.definition %}&lsquo;{{ reason.definition }}&rsquo;{% endif %}</td>
+                              <td>{{ reason.total }}</td>
+                            </tr>
+                          {% endfor %}
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+          </div>
+          
+          
+
+
+{% endblock %}
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+            var layout = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 1000, 
+                            margin: {l: 150, t: 20},
+                            bargap: 0.05,
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            }
+                        };
+            Plotly.newPlot('reasons', {{ data|tojson|safe }}, layout);
+            $('#reasons').on('plotly_click', function(event, data) {
+                var reason = data.points[0].data.y[data.points[0].pointNumber];
+                window.location.href = '/reasons/' + reason;
+                //$scope.$apply();
+            });
+
+          </script>
+{% endblock %}

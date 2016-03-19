@@ -1,0 +1,362 @@
+from flask import Flask, request, render_template
+from flask_restful import Resource, Api
+from pymongo import MongoClient, GEO2D
+from flask_restful import fields, marshal_with, reqparse, inputs
+from flask.ext.restful.utils import cors
+from flask.ext.paginate import Pagination
+import random
+from bson.son import SON
+import os
+import datetime
+
+
+MONGOLAB_URL = os.environ['MONGOLAB_URL']
+DEFAULT_HARVEST_DATE = datetime.datetime(2016, 1, 1, 0, 0, 0)
+
+app = Flask(__name__)
+api = Api(app)
+api.decorators = [cors.crossdomain(origin='*', methods=['GET'],)]
+
+REASONS = {
+    '33(1)(a)': {'definition': 'contains information or matter the disclosure of which under this Act could reasonably be expected to cause damage to the security, defence or international relations of the Commonwealth', 'source': 'act'},
+    '33(1)(b)': {'definition':  'contains information or matter: (i) that was communicated in confidence by, or on behalf of, a foreign government, an authority of a foreign government or an international organisation (the foreign entity) to the Government of the Commonwealth, to an authority of the Commonwealth or to a person who received the communication on behalf of the Commonwealth or an authority of the Commonwealth (the Commonwealth entity); and (ii) which the foreign entity advises the Commonwealth entity is still confidential; and (iii) the confidentiality of which it would be reasonable to maintain', 'source': 'act'},
+    '33(1)(c)': {'definition': 'contains information or matter the disclosure of which under this Act would have a substantial adverse effect on the financial or property interests of the Commonwealth or of a Commonwealth institution and would not, on balance, be in the public interest'},
+    '33(1)(d)': {'definition': 'contains information or matter the disclosure of which under this Act would constitute a breach of confidence', 'source': 'act'},
+    '33(1)(e)(i)': {'definition': 'contains information or matter the disclosure of which under this Act would, or could reasonably be expected to prejudice the conduct of an investigation of a breach, or possible breach, of the law, or a failure, or possible failure, to comply with a law relating to taxation or prejudice the enforcement or proper administration of the law in a particular instance', 'source': 'act'},
+    '33(1)(e)(ii)': {'definition': 'contains information or matter the disclosure of which under this Act would, or could reasonably be expected to disclose, or enable a person to ascertain, the existence or identity of a confidential source of information in relation to the enforcement or administration of the law', 'source': 'act'},
+    '33(1)(e)(iii)': {'definition': 'contains information or matter the disclosure of which under this Act would, or could reasonably be expected to endanger the life or physical safety of any person', 'source': 'act'},
+    '33(1)(f)(ii)': {'definition': 'contains information or matter the disclosure of which under this Act would, or could reasonably be expected to disclose lawful methods or procedures for preventing, detecting, investigating, or dealing with matters arising out of, breaches or evasions of the law the disclosure of which would, or would be reasonably likely to, prejudice the effectiveness of those methods or procedures', 'source': 'act'},
+    '33(1)(f)(iii)': {'definition': 'contains information or matter the disclosure of which under this Act would, or could reasonably be expected to prejudice the maintenance or enforcement of lawful methods for the protection of public safety', 'source': 'act'},
+    '33(1)(g)': {'definition': 'contains information or matter the disclosure of which under this Act would involve the unreasonable disclosure of information relating to the personal affairs of any person (including a deceased person)', 'source': 'act'},
+    '33(1)(h)': {'definition': 'contains information or matter relating to trade secrets, or any other information or matter having a commercial value that would be, or could reasonably be expected to be, destroyed or diminished if the information or matter were disclosed', 'source': 'act'},
+    '33(1)(j)': {'definition': 'contains information or matter (other than information or matter referred to in paragraph (h)) concerning a person in respect of his or her business or professional affairs or concerning the business, commercial or financial affairs of an organization or undertaking, being information or matter the disclosure of which would, or could reasonably be expected to, unreasonably affect that person adversely in respect of his or her lawful business or professional affairs or that organization or undertaking in respect of its lawful business, commercial or financial affairs', 'source': 'act'},
+    '33(2)(a)': {'definition': 'of such a nature that it would be privileged from production in legal proceedings on the ground of legal professional privilege', 'source': 'act'},
+    '33(2)(b)': {'definition': 'of such a nature that disclosure of the record would be contrary to the public interest', 'source': 'act'},
+    '33(3)(a)(i)': {'definition': 'contains information or matter that relates to the personal affairs, or the business or professional affairs, of any person (including a deceased person)', 'source': 'act'},
+    '33(3)(a)(ii)': {'definition': 'contains information or matter that relates to the business, commercial or financial affairs of an organization or undertaking', 'source': 'act'},
+    '33(3)(b)': {'definition': 'there is in force a law relating to taxation that applies specifically to information or matter of that kind and prohibits persons referred to in that law from disclosing information or matter of that kind, whether the prohibition is absolute or is subject to exceptions or qualifications', 'source': 'act'},
+    'Cabinet notebooks': {'definition': 'Cabinet notebooks (22A(1) a Cabinet notebook is in the open access period if a period of 50 years has elapsed since the end of the year ending on 31 December in which the Cabinet notebook came into existence).', 'source': 'recordsearch'},
+    'Closed period': {'definition': 'Closed period', 'source': 'recordsearch'},
+    'Court records': {'definition': 'Court records: not subject to access and appeal provisions of the Archives Act unless regulations have been made. [No regulations as at 1997.]', 'source': 'recordsearch'},
+    'Destroyed': {'definition': 'Record destroyed in accordance with its relevant Records Disposal Authority', 'source': 'recordsearch'},
+    'MAKE YOUR SELECTION': {'definition': '', 'source': ''},
+    'NRF': {'definition': 'No records found [admininstrative]. A decision cannot be made on this item as it falls outside the provisions of the Archives Act 1983 and a decision cannot be made in relation to an access application.', 'source': 'recordsearch'},
+    'Non Cwlth-depositor': {'definition': 'Non Commonwealth (personal/corporate) records - each application for access subject to approval of depositor.', 'source': 'recordsearch'},
+    'Non Cwlth-no appeal': {'definition': 'Non Commonwealth (personal/corporate) records - decision not appealable.', 'source': 'recordsearch'},
+    'Parliament Class A': {'definition': 'Parliamentary records not subject to the Archives Act: access subject to permission of Presiding Officer or in accordance with a Parliamentary practice. See Archives (Records of the Parliament) Regulations', 'source': 'recordsearch'},
+    'Pre Access Recorder': {'definition': 'Pre Access Recorder non standard reasons for restriction.', 'source': 'recordsearch'},
+    'Withheld pending adv': {'definition': 'This item has been withheld pending access advice from an agency/agencies.', 'source': 'recordsearch'}
+}
+
+
+def get_db():
+    dbclient = MongoClient(MONGOLAB_URL)
+    db = dbclient.get_default_database()
+    return db
+
+
+class Year(fields.Raw):
+    def format(self, value):
+        return value['date'].year
+
+
+class DateString(fields.Raw):
+    def format(self, value):
+        return value['date_str']
+
+
+class Start(fields.Raw):
+    def format(self, value):
+        return value['start_date']['date'].year
+
+
+class End(fields.Raw):
+    def format(self, value):
+        return value['end_date']['date'].year
+
+
+class Date(fields.Raw):
+    def format(self, value):
+        return value['start_date']['date'].isoformat()
+
+item_fields = {}
+item_fields['id'] = fields.Integer(attribute='_id')
+item_fields['control_symbol'] = fields.String()
+item_fields['title'] = fields.String()
+item_fields['contents_dates'] = DateString()
+item_fields['start_year'] = Start(attribute='contents_dates')
+item_fields['end_year'] = End(attribute='contents_dates')
+item_fields['reasons'] = fields.List(fields.String)
+item_fields['date_of_decision'] = Date(attribute='access_decision')
+item_fields['series'] = fields.String()
+item_fields['series_title'] = fields.String()
+
+
+def convert_harvest_date(harvest=None):
+    try:
+        dates = harvest.split('-')
+        harvest_date = datetime.datetime(int(dates[0]), int(dates[1]), int(dates[2]), 0, 0, 0)
+    except:
+        harvest_date = DEFAULT_HARVEST_DATE
+    return harvest_date
+
+
+@app.route('/')
+def home():
+    harvest_date = convert_harvest_date()
+    db = get_db()
+    items = db.items.find({'random_id': {'$near': [random.random(), 0]}}).limit(20)
+    harvest = db.harvests.find_one({'harvest_date': harvest_date})
+    return render_template('home.html', items=items, harvest=harvest)
+
+
+@app.route('/reasons/')
+def get_reasons():
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    reasons = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})
+    x = []
+    y = []
+    text = []
+    print reasons['results']
+    for index, reason in enumerate(reasons['results']):
+        reasons['results'][index]['definition'] = REASONS[reason['reason']]['definition']
+        y.append(reason['reason'])
+        x.append(reason['total'])
+        text.append('{} closed files'.format(reason['total']))
+    data = [{'x': x[::-1], 'y': y[::-1], 'text': text[::-1], 'hoverinfo': 'y+text', 'type': 'bar', 'orientation': 'h', 'marker': {'color': '#800080'}}]
+    return render_template('reasons.html', reasons=reasons, data=data)
+
+
+@app.route('/reasons/<reason_id>/')
+def get_reason(reason_id):
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    reason = db.aggregates.find_one({'harvest_date': harvest_date, 'reason': reason_id})
+    reason['reason'] = reason_id
+    reason['definition'] = REASONS[reason_id]['definition']
+    reason['source'] = REASONS[reason_id]['source']
+    count = 0
+    total_age = 0
+    now = datetime.datetime.now().year
+    for result in reason['ages']:
+        if result['year'] != 1800:
+            total_age += (now - result['year']) * result['total']
+            count += result['total']
+    reason['average_age'] = total_age / count
+    return render_template('reason.html', reason=reason, harvest=harvest_date)
+
+
+@app.route('/series/')
+def get_series_chart():
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'series_totals'})
+    results = series_totals['results'][:50]
+    x = []
+    y = []
+    text = []
+    for index, series in enumerate(results):
+        results[index]['title'] = ''
+        y.append(series['series'])
+        x.append(series['total'])
+        text.append('{} closed files'.format(series['total']))
+    data = [{'x': x[::-1], 'y': y[::-1], 'text': text[::-1], 'hoverinfo': 'y+text', 'type': 'bar', 'orientation': 'h', 'marker': {'color': '#800080'}}]
+    return render_template('series_chart.html', series=results, data=data)
+
+
+@app.route('/series/list/')
+def get_series_list():
+    results_per_page = 100
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'series_totals'})
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    start = (page-1)*results_per_page
+    end = start + results_per_page
+    results = series_totals['results'][start:end]
+    total = len(series_totals['results'])
+    pagination = Pagination(page=page, total=total, record_name='series', bs_version=3, per_page=results_per_page)
+    return render_template('series_list.html', series=results, pagination=pagination)
+
+
+@app.route('/series/<series_id>/')
+def get_series(series_id):
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'series': series_id})
+    count = 0
+    total_age = 0
+    now = datetime.datetime.now().year
+    for result in series_totals['ages']:
+        if result['year'] != 1800:
+            total_age += (now - result['year']) * result['total']
+            count += result['total']
+    series_totals['average_age'] = total_age / count
+    series = db.series.find_one({'identifier': series_id})
+    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date)
+
+
+@app.route('/items/')
+def get_items():
+    db = get_db()
+    results_per_page = 20
+    harvest_id = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest_id)
+    reasons = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})['results']
+    q = request.args.get('q', None)
+    sort = request.args.get('sort', None)
+    year = request.args.get('year', None)
+    reason = request.args.get('reason', None)
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+    query = {}
+    query['harvests'] = harvest_date
+    if q:
+        query['$text'] = {'$search': q}
+    if reason and reason != 'All':
+        query['reasons'] = reason
+    items = db.items.find(query).sort([['series', 1], ['control_symbol', 1]]).skip((page-1)*results_per_page).limit(results_per_page)
+    total = db.items.find(query).count()
+    pagination = Pagination(page=page, total=total, record_name='items', bs_version=3, per_page=results_per_page)
+    return render_template('items.html', items=items, pagination=pagination, reasons=reasons, q=q, reason=reason)
+
+
+@app.route('/items/<id>/')
+def get_item(id):
+    db = get_db()
+    harvest_date = convert_harvest_date()
+    item = db.items.find_one({'identifier': id})
+    end = item['contents_dates']['start_date']['date']
+    now = datetime.datetime.now()
+    item['age'] = (now-end).days/365
+    return render_template('item.html', item=item, harvest=harvest_date)
+
+
+@app.route('/harvests/')
+def get_harvests():
+    db = get_db()
+    all_harvests = db.harvests.find().sort('harvest_date', -1)
+    harvests = []
+    for harvest in all_harvests:
+        harvests.append({'harvest_date': harvest['harvest_date'], 'total': harvest['total']})
+    return render_template('harvests.html', harvests=harvests)
+
+
+class GetItems(Resource):
+    def get(self):
+        response = {}
+        db = get_db()
+        collection = db.items
+        # collection.create_index([('random_id', GEO2D)])
+        parser = reqparse.RequestParser()
+        parser.add_argument('n', type=int, default=20)
+        parser.add_argument('s', type=int, default=0)
+        parser.add_argument('contents_year', type=int)
+        parser.add_argument('reason', type=str, action='append')
+        parser.add_argument('series', type=str)
+        parser.add_argument('order_by', type=str)
+        parser.add_argument('decision_year', type=int)
+        args = parser.parse_args()
+        if args['n'] > 100:
+            number = 100
+        else:
+            number = args['n']
+        query = {}
+        print args
+        if args['contents_year']:
+            contents_date = datetime.datetime(args['contents_year'], 1, 1, 0, 0, 0)
+            query['contents_dates.start_date.date'] = {'$lte': contents_date}
+            query['contents_dates.end_date.date'] = {'$gte': contents_date}
+        if args['decision_year']:
+            decision_date_start = datetime.datetime(args['decision_year'], 1, 1, 0, 0, 0)
+            decision_date_end = datetime.datetime(args['decision_year'], 12, 31, 0, 0, 0)
+            query['access_decision.start_date.date'] = {'$gte': decision_date_start, '$lte': decision_date_end}
+        if args['reason']:
+            query['reasons'] = {'$all': args['reason']}
+        if args['series']:
+            query['series'] = args['series']
+        if args['order_by'] == 'random':
+            query['random_id'] = {'$near': [random.random(), 0]}
+        items = list(collection.find(query).limit(number).skip(args['s']))
+        response['total'] = collection.find(query).count()
+        response['results'] = marshal(items, item_fields)
+        response['s'] = args['s']
+        response['n'] = number
+        return response
+
+
+class GetReasons(Resource):
+    def get(self):
+        response = {}
+        db = get_db()
+        collection = db.items
+        parser = reqparse.RequestParser()
+        parser.add_argument('decision_year', type=int)
+        parser.add_argument('contents_year', type=int)
+        parser.add_argument('harvest', type=inputs.date)
+        args = parser.parse_args()
+        pipeline = []
+        if args['decision_year'] or args['contents_year']:
+            if args['decision_year']:
+                decision_date_start = datetime.datetime(args['decision_year'], 1, 1, 0, 0, 0)
+                decision_date_end = datetime.datetime(args['decision_year'], 12, 31, 0, 0, 0)
+                pipeline.append({'$match': {'harvests': args['harvest'], 'access_decision.start_date.date': {'$gte': decision_date_start, '$lte': decision_date_end}}})
+            if args['contents_year']:
+                contents_date = datetime.datetime(args['contents_year'], 1, 1, 0, 0, 0)
+                pipeline += [{'$match': {'harvests': args['harvest'], 'contents_dates.start_date.date': {'$lte': contents_date}}}, {'$match': {'contents_dates.end_date.date': {'$gte': contents_date}}}]
+            pipeline += [
+                {"$unwind": "$reasons"},
+                {"$group": {"_id": "$reasons", "total": {"$sum": 1}}},
+                {"$project": {"_id": 0, "reason": "$_id", "total": "$total"}},
+                {'$sort': {'reason': 1}}
+            ]
+            items = list(collection.aggregate(pipeline))
+        else:
+            harvest = db.harvests.find_one({'harvest_date': args['harvest']})
+            items = harvest['total_reasons']
+        response = {'results': items}
+        response['total'] = len(items)
+        return response
+
+
+class GetReason(Resource):
+    def get(self, reason):
+        db = get_db()
+        parser = reqparse.RequestParser()
+        parser.add_argument('harvest', type=inputs.date)
+        args = parser.parse_args()
+        harvest = db.harvests.find_one({'harvest_date': args['harvest']})
+        results = harvest['reasons'][reason]
+        results['reason'] = reason
+        return results
+
+
+class GetDecisions(Resource):
+    def get(self):
+        pipeline = [
+            {"$group": {"_id": {"$year": "$access_decision.start_date.date"}, "total": {"$sum": 1}}},
+            {"$project": {"_id": 0, "decision_year": "$_id", "total": "$total"}},
+            {'$sort': {'decision_year': -1}}
+        ]
+        items = get_items()
+        return list(items.aggregate(pipeline))
+
+
+api.add_resource(GetItems, '/items')
+api.add_resource(GetReasons, '/reasons')
+api.add_resource(GetReason, '/reasons/<reason>')
+api.add_resource(GetDecisions, '/decisions')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', debug=True)
