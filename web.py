@@ -212,10 +212,15 @@ def get_items():
     harvest_id = request.args.get('harvest', None)
     harvest_date = convert_harvest_date(harvest_id)
     reasons = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})['results']
+    series_list = sorted([series['series'] for series in db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'series_totals'})['results']])
+    now = datetime.datetime.now().year
+    years = [year for year in range(1800, now)]
     q = request.args.get('q', None)
-    sort = request.args.get('sort', None)
+    sort = request.args.get('sort', 'series')
     year = request.args.get('year', None)
+    series = request.args.get('series', None)
     reason = request.args.get('reason', None)
+    age = request.args.get('age', None)
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
@@ -224,12 +229,29 @@ def get_items():
     query['harvests'] = harvest_date
     if q:
         query['$text'] = {'$search': q}
-    if reason and reason != 'All':
+    if reason and reason != 'Any':
         query['reasons'] = reason
-    items = db.items.find(query).sort([['series', 1], ['control_symbol', 1]]).skip((page-1)*results_per_page).limit(results_per_page)
+    if year and year != 'Any':
+        year = int(year)
+        contents_date = datetime.datetime(year, 1, 1, 0, 0, 0)
+        query['contents_dates.start_date.date'] = {'$lte': contents_date}
+        query['contents_dates.end_date.date'] = {'$gte': contents_date}
+    if age and age != 'Any':
+        age = int(age)
+        end_date = datetime.datetime(now-age, 12, 31, 0, 0, 0)
+        query['contents_dates.end_date.date'] = {'$lte': end_date}
+    if series and series != 'Any':
+        query['series'] = series
+    if sort == 'series':
+        order_by = [['series', 1], ['control_symbol', 1]]
+    elif sort == 'oldest':
+        order_by = [['contents_dates.start_date.date', 1]]
+    elif sort == 'youngest':
+        order_by = [['contents_dates.start_date.date', -1]]
+    items = db.items.find(query).sort(order_by).skip((page-1)*results_per_page).limit(results_per_page)
     total = db.items.find(query).count()
     pagination = Pagination(page=page, total=total, record_name='items', bs_version=3, per_page=results_per_page)
-    return render_template('items.html', items=items, pagination=pagination, reasons=reasons, q=q, reason=reason)
+    return render_template('items.html', items=items, pagination=pagination, reasons=reasons, series_list=series_list, years=years, q=q, reason=reason, series=series, year=year, age=age, sort=sort)
 
 
 @app.route('/items/<id>/')

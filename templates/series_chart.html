@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
       
-          <h1 class="page-header">Series</h1>
-          <h2>These are the record series containing the most closed files.</h2>
-          <ul class="nav nav-pills" role="tablist">
+          <h1 class="page-header">Series containg closed files</h1>
+          <ul class="nav nav-pills pull-right" role="tablist">
             <li role="presentation" class="active"><a href="/series/" aria-controls="chart" role="tab"><i class="fa fa-bar-chart"></i></a></li>
             <li role="presentation"><a href="/series/list/" aria-controls="list" role="tab"><i class="fa fa-th-list"></i></a></li>
           </ul>
+          <h2>These are the record series containing the most closed files.</h2>
+          
           <p class="muted"><small id="hover-info">Click on a bar for more information</small></p>
           <div id="series"><!-- Plotly chart will be drawn inside this DIV --></div>
           
