@@ -23,13 +23,12 @@
               <span class="text-muted">contain closed files that cite this reason</span>
             </div>
             <div class="col-xs-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <span class="text-muted">Something else</span>
+              <div class="circle-text">{{ reason.decision_age }}</div>
+              <h4>years</h4>
+              <span class="text-muted">is the average age of decisions to closed files citing this reason</span>
             </div>
           </div>
           
-          <h3><a href="/items?reason={{ reason.reason }}" class="circle-text">{{ reason.total }}</a> closed files cite this as a reason you&rsquo;re not allowed to see them.</h3>
 
 
 {% endblock %}

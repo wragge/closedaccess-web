@@ -146,6 +146,13 @@ def get_reason(reason_id):
             total_age += (now - result['year']) * result['total']
             count += result['total']
     reason['average_age'] = total_age / count
+    count = 0
+    total_age = 0
+    for result in reason['decisions']:
+        if result['year'] != 1800:
+            total_age += (now - result['year']) * result['total']
+            count += result['total']
+    reason['decision_age'] = total_age / count
     return render_template('reason.html', reason=reason, harvest=harvest_date)
 
 
