@@ -37,35 +37,34 @@
   <div class="form-group">
     <label for="reason">Cites this reason</label>
     <select id="reason" name="reason" class="form-control">
-      <option>Any</option>
+      <option value="">Any</option>
     {% for option in reasons %}
       <option{%if option.reason == reason %} selected="selected"{% endif %}>{{ option.reason }}</option>
     {% endfor %}
     </select>
   </div>
   <div class="form-group">
-    <label for="year">Includes content from this year</label>
-    <select id="year" name="year" class="form-control">
-      <option>Any</option>
+    <label for="start_year">Earliest date of content</label>
+    <select id="start_year" name="start_year" class="form-control">
+      <option value="">Any</option>
     {% for option in years %}
-      <option{%if option == year %} selected="selected"{% endif %}>{{ option }}</option>
+      <option{%if option == start_year %} selected="selected"{% endif %}>{{ option }}</option>
     {% endfor %}
     </select>
   </div>
   <div class="form-group">
-    <label for="age">Age is more than</label>
-    <select id="age" name="age" class="form-control">
-      <option>Any</option>
-      <option{% if age == 20 %} selected="selected"{% endif %} value="20">20 years old (open period)</option>
-      <option{% if age == 30 %} selected="selected"{% endif %} value="30">30 years old</option>
-      <option{% if age == 50 %} selected="selected"{% endif %} value="50">50 years old</option>
-      <option{% if age == 100 %} selected="selected"{% endif %} value="100">100 years old</option>
+    <label for="end_year">Latest date of content</label>
+    <select id="end_year" name="end_year" class="form-control">
+      <option value="" >Any</option>
+    {% for option in years %}
+      <option{%if option == end_year %} selected="selected"{% endif %}>{{ option }}</option>
+    {% endfor %}
     </select>
   </div>
   <div class="form-group">
     <label for="series">Part of this series</label>
     <select id="series" name="series" class="form-control">
-      <option>Any</option>
+      <option value="">Any</option>
     {% for option in series_list %}
       <option{%if option == series %} selected="selected"{% endif %}>{{ option }}</option>
     {% endfor %}

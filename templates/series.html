@@ -3,30 +3,171 @@
       
           <h1 class="page-header">{{ series.identifier }}</h1>
           <h2>{{ series.title }}</h2>
-
-          <div class="row placeholders">
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <a href="/items?series={{ series.identifier }}" class="circle-text closed">{{ totals.total }}</a> 
-              <h4>closed files</h4>
-              <span class="text-muted">are part of this series</span>
+          <div class="row item-summary">
+            <div class="placeholders col-xs-12 col-md-6">
+              <div class="row">
+              <div class="col-xs-6 placeholder">
+                <a href="/items?series={{ series.identifier }}" class="circle-text closed">{{ totals.total }}</a> 
+                <h4>closed files</h4>
+                <span class="text-muted">are part of this series</span>
+              </div>
+              <div class="col-xs-6 placeholder">
+                <div class="circle-text">{{ totals.average_age }}</div>
+                <h4>years</h4>
+                <span class="text-muted">is the average age of closed files in this series, based on the date of their earliest content</span>
+              </div>
+              </div>
+              <div class="row">
+              <div class="col-xs-6 placeholder">
+                <a href="/items/?series={{ series.identifier }}&end_year={{ now - 20 }}" class="circle-text">{{ ((total_open / totals.total) * 100)|int }}%</a>
+                <h4>of the total number of closed files</h4>
+                <span class="text-muted">is completely within the open period (more than 20 years old)</span>
+              </div>
+              <div class="col-xs-6 placeholder">
+                <div class="circle-text">{{ totals.reasons|length }}</div>
+                <h4>reasons</h4>
+                <span class="text-muted">are cited by closed files in this series</span>
+              </div>
+              </div>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <div class="circle-text">{{ totals.average_age }}</div>
-              <h4>years</h4>
-              <span class="text-muted">is the average age of closed files in this series, based on the date of their earliest content</span>
+            <div class="col-xs-12 col-md-6">
+                <div class="table-responsive">
+                  <table class="table">
+                    <tbody>
+                      <thead>
+                        <th colspan="2">Details as harvested on {{ harvest.strftime('%e %B %Y') }}</th>
+                      </thead>
+                      <tr>
+                        <td>Series</td>
+                        <td>{{ series.identifier }}</td>
+                      </tr>
+                      <tr>
+                        <td>Title</td>
+                        <td>{{ series.title }}</td>
+                      </tr>
+                      <tr>
+                        <td>Contents dates</td>
+                        <td>{{ series.contents_dates.date_str }}</td>
+                      </tr>
+                      <tr>
+                        <td>Items described</td>
+                        <td>{{ series.items_described.described_number }}</td>
+                      </tr>
+                      <tr>
+                        <td>Items digitised</td>
+                        <td>{{ series.items_digitised }}</td>
+                      </tr>
+                      <tr>
+                      <tr>
+                        <td>Recording agencies</td>
+                        <td>
+                          <ul class="details-list">
+                          {% for agency in series.recording_agencies %}
+                            <li>{{ agency.identifier }}, {{ agency.title }} <a href="http://www.naa.gov.au/cgi-bin/Search?Number={{ series.identifier }}"><i class="fa fa-external-link"></i></a><br><span class="text-muted">{{ agency.date_str }}</span></li>
+                          {% endfor %}
+                          </ul>
+                        </td>
+                      </tr>
+                      <tr>
+                      <tr>
+                        <td>Controlling agencies</td>
+                        <td>
+                          <ul class="details-list">
+                          {% for agency in series.controlling_agencies %}
+                            <li>{{ agency.identifier }}, {{ agency.title }} <a href="http://www.naa.gov.au/cgi-bin/Search?Number={{ series.identifier }}"><i class="fa fa-external-link"></i></a><br><span class="text-muted">{{ agency.date_str }}</span></li>
+                          {% endfor %}
+                          </ul>
+                        </td>
+                      </tr>
+                      <tr>
+                      <tr>
+                        <td>Locations</td>
+                        <td>
+                          <ul class="details-list">
+                          {% for location in series.locations %}
+                            <li>{{ location.location }} ({{ location.quantity }}m)</li>
+                          {% endfor %}
+                          </ul>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colspan="2">
+                          <a href="http://www.naa.gov.au/cgi-bin/Search?O=I&Number={{ series.identifier }}">View on RecordSearch</a> <a href="http://www.naa.gov.au/cgi-bin/?Number={{ series.identifier }}"><i class="fa fa-external-link"></i></a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <div class="circle-text">{{ totals.reasons|length }}</div>
-              <h4>reasons</h4>
-              <span class="text-muted">are cited by closed files in this series</span>
+            <div class="row">
+              <div class="col-xs-12 col-md-6">
+              <h3>How old are closed files in this series?</h3>
+                <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
+              </div>
+              <div class="col-xs-12 col-md-6">
+              <h3>What reasons are cited for closing files in this series?</h3>
+                <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
+              </div>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <span class="text-muted">Something else</span>
+            <h3 class="sub-header">Here's some examples of closed files in this series&hellip;</h3>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Series</th>
+                    <th>Control Symbol</th>
+                    <th>Title</th>
+                    <th>Contents dates</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                  <tr>
+                    <td>{{ item.series }}</td>
+                    <td>{{ item.control_symbol}}</td>
+                    <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
+                    <td>{{ item.contents_dates.date_str }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
             </div>
-          </div>
           
 
 
+{% endblock %}
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+            var layout1 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            margin: {t: 20},
+                            height: 500
+                        };
+            Plotly.newPlot('ages', {{ age_data|tojson|safe }}, layout1);
+            $('#ages').on('plotly_click', function(event, data) {
+                var year = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/items/?series={{ series.identifier}}&sort=oldest&start_year=' + year;
+                //$scope.$apply();
+            });
+
+            var layout2 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 500, 
+                            margin: {t: 20},
+                            bargap: 0.05,
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            }
+                        };
+            Plotly.newPlot('reasons', {{ reasons_data|tojson|safe }}, layout2);
+            $('#reasons').on('plotly_click', function(event, data) {
+                var reason = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/items/?series={{ series.identifier}}&reason=' + reason;
+                //$scope.$apply();
+            });
+
+          </script>
 {% endblock %}

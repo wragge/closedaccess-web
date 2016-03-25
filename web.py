@@ -119,7 +119,6 @@ def get_reasons():
     x = []
     y = []
     text = []
-    print reasons['results']
     for index, reason in enumerate(reasons['results']):
         reasons['results'][index]['definition'] = REASONS[reason['reason']]['definition']
         y.append(reason['reason'])
@@ -203,13 +202,32 @@ def get_series(series_id):
     count = 0
     total_age = 0
     now = datetime.datetime.now().year
+    x = []
+    y = []
+    text = []
     for result in series_totals['ages']:
         if result['year'] != 1800:
             total_age += (now - result['year']) * result['total']
+            y.append(series_totals['total'] - count)
+            x.append(result['year'])
+            text.append('{} closed files start in {} or later'.format(series_totals['total'] - count, result['year']))
             count += result['total']
+    age_data = [{'x': x, 'y': y, 'text': text, 'fill': 'tozeroy', 'hoverinfo': 'x+text', 'type': 'scatter', 'marker': {'color': '#800080'}}]
     series_totals['average_age'] = total_age / count
+    x = []
+    y = []
+    text = []
+    for index, reason in enumerate(series_totals['reasons']):
+        series_totals['reasons'][index]['definition'] = REASONS[reason['reason']]['definition']
+        x.append(reason['reason'])
+        y.append(reason['total'])
+        text.append('{} closed files'.format(reason['total']))
+    reasons_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
     series = db.series.find_one({'identifier': series_id})
-    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date)
+    end_date = datetime.datetime(now-20, 12, 31, 0, 0, 0)
+    total_open = db.items.find({'harvests': harvest_date, 'contents_dates.end_date.date': {'$lte': end_date}, 'series': series_id}).count()
+    items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'series': series_id, 'harvests': harvest_date}).limit(20)
+    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date, age_data=age_data, reasons_data=reasons_data, total_open=total_open, now=now, items=items)
 
 
 @app.route('/items/')
@@ -224,7 +242,8 @@ def get_items():
     years = [year for year in range(1800, now)]
     q = request.args.get('q', None)
     sort = request.args.get('sort', 'series')
-    year = request.args.get('year', None)
+    start_year = request.args.get('start_year', None)
+    end_year = request.args.get('end_year', None)
     series = request.args.get('series', None)
     reason = request.args.get('reason', None)
     age = request.args.get('age', None)
@@ -236,18 +255,28 @@ def get_items():
     query['harvests'] = harvest_date
     if q:
         query['$text'] = {'$search': q}
-    if reason and reason != 'Any':
+    if reason:
         query['reasons'] = reason
-    if year and year != 'Any':
-        year = int(year)
-        contents_date = datetime.datetime(year, 1, 1, 0, 0, 0)
-        query['contents_dates.start_date.date'] = {'$lte': contents_date}
-        query['contents_dates.end_date.date'] = {'$gte': contents_date}
-    if age and age != 'Any':
+    if start_year and end_year:
+        start_year = int(start_year)
+        end_year = int(end_year)
+        start_date = datetime.datetime(start_year, 1, 1, 0, 0, 0)
+        end_date = datetime.datetime(end_year, 12, 31, 0, 0, 0)
+        query['contents_dates.start_date.date'] = {'$gte': start_date}
+        query['contents_dates.end_date.date'] = {'$lte': end_date}
+    elif start_year:
+        start_year = int(start_year)
+        start_date = datetime.datetime(start_year, 1, 1, 0, 0, 0)
+        query['contents_dates.start_date.date'] = {'$gte': start_date}
+    elif end_year:
+        end_year = int(end_year)
+        end_date = datetime.datetime(end_year, 12, 31, 0, 0, 0)
+        query['contents_dates.end_date.date'] = {'$lte': end_date}
+    if age:
         age = int(age)
         end_date = datetime.datetime(now-age, 12, 31, 0, 0, 0)
         query['contents_dates.end_date.date'] = {'$lte': end_date}
-    if series and series != 'Any':
+    if series:
         query['series'] = series
     if sort == 'series':
         order_by = [['series', 1], ['control_symbol', 1]]
@@ -258,7 +287,7 @@ def get_items():
     items = db.items.find(query).sort(order_by).skip((page-1)*results_per_page).limit(results_per_page)
     total = db.items.find(query).count()
     pagination = Pagination(page=page, total=total, record_name='items', bs_version=3, per_page=results_per_page)
-    return render_template('items.html', items=items, pagination=pagination, reasons=reasons, series_list=series_list, years=years, q=q, reason=reason, series=series, year=year, age=age, sort=sort)
+    return render_template('items.html', items=items, pagination=pagination, reasons=reasons, series_list=series_list, years=years, q=q, reason=reason, series=series, start_year=start_year, end_year=end_year, age=age, sort=sort)
 
 
 @app.route('/items/<id>/')

@@ -141,7 +141,7 @@ a.closed:hover {
 }
 
 .item-summary {
-  margin-top: : 30px;
+  margin-top: 30px;
   margin-bottom: 30px;
 }
 
@@ -152,4 +152,10 @@ a.closed:hover {
 
 .table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {
     border: none;
+}
+
+.details-list { 
+  padding: 0; 
+  list-style-position: inside;
+  list-style-type: none;
 }
