@@ -159,3 +159,12 @@ a.closed:hover {
   list-style-position: inside;
   list-style-type: none;
 }
+
+.wip {
+  padding: 20px;
+  margin-bottom: 40px;
+}
+
+.js-plotly-plot .plotly svg a {
+  fill: #ffffff !important;
+}

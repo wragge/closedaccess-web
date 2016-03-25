@@ -28,7 +28,86 @@
               <span class="text-muted">is the average age of decisions to closed files citing this reason</span>
             </div>
           </div>
+          <div class="row">
+              <div class="col-xs-12 col-md-6">
+              <h3>How old are closed files that cite this reason?<br><small>Click to view files</small></h3>
+                <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
+              </div>
+              <div class="col-xs-12 col-md-6">
+                <h3>What series contain most closed files citing this reason?<br><small>Click to view files</small></h3>                
+                <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
+              </div>
+            </div>
+            <h3 class="sub-header">Here's some examples of closed files that cite this reason&hellip;</h3>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Series</th>
+                    <th>Control Symbol</th>
+                    <th>Title</th>
+                    <th>Contents dates</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                  <tr>
+                    <td>{{ item.series }}</td>
+                    <td>{{ item.control_symbol}}</td>
+                    <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
+                    <td>{{ item.contents_dates.date_str }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
           
 
+{% endblock %}
 
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+            var layout1 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            margin: {t: 0},
+                            height: 500
+                        };
+            Plotly.newPlot('ages', {{ age_data|tojson|safe }}, layout1);
+            $('#ages').on('plotly_click', function(event, data) {
+                var year = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/items/?reason={{ reason.reason }}&sort=oldest&start_year=' + year;
+                //$scope.$apply();
+            });
+
+            var layout2 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 500, 
+                            margin: {t: 0},
+                            bargap: 0.05,
+                            yaxis: {
+                                ticksuffix: ' '
+                            },
+                            annotations: [
+                                            {
+                                              x: 1,
+                                              y: 0.9,
+                                              xref: 'paper',
+                                              yref: 'paper',
+                                              text: '<a href="/series/list/?reason={{ reason.reason }}">View full list</a>',
+                                              showarrow: false,
+                                              font: { family: "Helvetica Neue", color: '#fff'},
+                                              bgcolor: '#310867',
+                                              borderpad: 3
+                                            }
+                                          ]
+                        };
+            Plotly.newPlot('reasons', {{ series_data|tojson|safe }}, layout2);
+            $('#reasons').on('plotly_click', function(event, data) {
+                var series = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/items/?reason={{ reason.reason }}&series=' + series;
+                //$scope.$apply();
+            });
+
+          </script>
 {% endblock %}

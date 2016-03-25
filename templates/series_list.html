@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
           <h1 class="page-header">Series</h1>
-          <ul class="nav nav-pills pull-right" role="tablist">
-            <li role="presentation"><a href="/series/" aria-controls="chart" role="tab"><i class="fa fa-bar-chart"></i></a></li>
-            <li role="presentation" class="active"><a href="/series/list/" aria-controls="list" role="tab"><i class="fa fa-th-list"></i></a></li>
-          </ul>
-          <h2>This is the full list of record series containing closed files.</h2>
+          {% if not reason %}
+            <ul class="nav nav-pills pull-right" role="tablist">
+              <li role="presentation"><a href="/series/" aria-controls="chart" role="tab"><i class="fa fa-bar-chart"></i></a></li>
+              <li role="presentation" class="active"><a href="/series/list/" aria-controls="list" role="tab"><i class="fa fa-th-list"></i></a></li>
+            </ul>
+            <h2>This is the full list of record series containing closed files.</h2>
+          {% else %}
+            <h2>This is a list of record series containing closed files that cite the reason <a href="/reasons/{{ reason }}">{{ reason }}</a>.</h2>
+          {% endif %}
           {{ pagination.info }}
           {{ pagination.links }}
           <div class="table-responsive">

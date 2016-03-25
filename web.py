@@ -139,12 +139,27 @@ def get_reason(reason_id):
     reason['source'] = REASONS[reason_id]['source']
     count = 0
     total_age = 0
+    x = []
+    y = []
+    text = []
     now = datetime.datetime.now().year
     for result in reason['ages']:
         if result['year'] != 1800:
             total_age += (now - result['year']) * result['total']
+            y.append(reason['total'] - count)
+            x.append(result['year'])
+            text.append('{} closed files start in {} or later'.format(reason['total'] - count, result['year']))
             count += result['total']
+    age_data = [{'x': x, 'y': y, 'text': text, 'fill': 'tozeroy', 'hoverinfo': 'x+text', 'type': 'scatter', 'marker': {'color': '#800080'}}]
     reason['average_age'] = total_age / count
+    x = []
+    y = []
+    text = []
+    for result in reason['series'][:30]:
+        y.append(result['total'])
+        x.append(result['series'])
+        text.append('{} closed files'.format(result['total']))
+    series_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
     count = 0
     total_age = 0
     for result in reason['decisions']:
@@ -152,7 +167,8 @@ def get_reason(reason_id):
             total_age += (now - result['year']) * result['total']
             count += result['total']
     reason['decision_age'] = total_age / count
-    return render_template('reason.html', reason=reason, harvest=harvest_date)
+    items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'reasons': reason_id, 'harvests': harvest_date}).limit(20)
+    return render_template('reason.html', reason=reason, harvest=harvest_date, age_data=age_data, series_data=series_data, items=items)
 
 
 @app.route('/series/')
@@ -178,19 +194,23 @@ def get_series_chart():
 def get_series_list():
     results_per_page = 100
     harvest = request.args.get('harvest', None)
+    reason = request.args.get('reason', None)
     harvest_date = convert_harvest_date(harvest)
     db = get_db()
-    series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'series_totals'})
+    if reason:
+        series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason', 'reason': reason})['series']
+    else:
+        series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'series_totals'})['results']
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
         page = 1
     start = (page-1)*results_per_page
     end = start + results_per_page
-    results = series_totals['results'][start:end]
-    total = len(series_totals['results'])
+    results = series_totals[start:end]
+    total = len(series_totals)
     pagination = Pagination(page=page, total=total, record_name='series', bs_version=3, per_page=results_per_page)
-    return render_template('series_list.html', series=results, pagination=pagination)
+    return render_template('series_list.html', series=results, pagination=pagination, reason=reason)
 
 
 @app.route('/series/<series_id>/')
