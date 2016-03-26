@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">Ages closed files</h1>
+          <h2>These are the dates of the earliest content in closed files.</h2>
+          
+          <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
+          
+          <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
+          
+
+
+{% endblock %}
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+            var layout1 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 600, 
+                            margin: {l: 100, t: 30},
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            }
+                        };
+            Plotly.newPlot('years', {{ data|tojson|safe }}, layout1);
+            $('#years').on('plotly_click', function(event, data) {
+                var year = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/items/?sort=oldest&content_year=' + year;
+                //$scope.$apply();
+            });
+            var layout2 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 600, 
+                            margin: {l: 100, t: 30},
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            },
+                            annotations: [
+                              {
+                                x: 21,
+                                y: 500,
+                                xref: 'x',
+                                yref: 'y',
+                                text: 'Start of the Open Period',
+                                showarrow: true,
+                                ax: 0,
+                                ay: -200
+                              }
+                            ]
+                        };
+            Plotly.newPlot('ages', {{ open_data|tojson|safe }}, layout2);
+            $('#ages').on('plotly_click', function(event, data) {
+                var age = data.points[0].data.x[data.points[0].pointNumber];
+                var year = {{ now }} - age;
+                window.location.href = '/items/?sort=youngest&end_direction=before&end_year=' + year;
+                //$scope.$apply();
+            });
+
+          </script>
+{% endblock %}

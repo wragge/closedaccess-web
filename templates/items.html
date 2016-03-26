@@ -51,7 +51,20 @@
     </select>
   </div>
   <div class="form-group">
-    <label for="start_year">Earliest date of content</label>
+    <label for="content_year">Includes content from</label>
+    <select id="content_year" name="content_year" class="form-control">
+      <option value="">Any</option>
+    {% for option in years %}
+      <option{%if option == content_year %} selected="selected"{% endif %}>{{ option }}</option>
+    {% endfor %}
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="start_year">Earliest content</label>
+    <select id="start_direction" name="start_direction" class="pull-right">
+      <option{%if start_direction == 'after' %} selected="selected"{% endif %}>after</option>
+      <option{%if start_direction == 'before' %} selected="selected"{% endif %}>before</option>
+    </select>
     <select id="start_year" name="start_year" class="form-control">
       <option value="">Any</option>
     {% for option in years %}
@@ -60,7 +73,11 @@
     </select>
   </div>
   <div class="form-group">
-    <label for="end_year">Latest date of content</label>
+    <label for="end_year">Latest content</label>
+    <select id="end_direction" name="end_direction" class="pull-right">
+      <option{%if end_direction == 'before' %} selected="selected"{% endif %}>before</option>
+      <option{%if end_direction == 'after' %} selected="selected"{% endif %}>after</option>
+    </select>
     <select id="end_year" name="end_year" class="form-control">
       <option value="" >Any</option>
     {% for option in years %}

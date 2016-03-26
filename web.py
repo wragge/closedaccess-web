@@ -111,6 +111,37 @@ def home():
     return render_template('home.html', items=items, harvest=harvest)
 
 
+@app.route('/ages/')
+def get_ages():
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    now = datetime.datetime.now().year
+    db = get_db()
+    total = db.harvests.find_one({'harvest_date': harvest_date})['total']
+    years = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'year_totals'})
+    x = []
+    y = []
+    text = []
+    for year in years['results']:
+        y.append(year['total'])
+        x.append(year['year'])
+        text.append('{} closed files'.format(year['total']))
+    data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
+    ends = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'end_totals'})
+    count = 0
+    x = []
+    y = []
+    text = []
+    for year in ends['results'][::-1]:
+        new_total = total - count
+        count += year['total']
+        x.append(now - year['year'])
+        y.append(count)
+        text.append('{} closed files are more than {} years old'.format(new_total, now - year['year']))
+    open_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'text', 'fill': 'tozeroy', 'type': 'scatter', 'marker': {'color': '#800080'}}]
+    return render_template('ages.html', years=years, data=data, open_data=open_data, now=now)
+
+
 @app.route('/reasons/')
 def get_reasons():
     harvest = request.args.get('harvest', None)
@@ -156,7 +187,7 @@ def get_reason(reason_id):
     x = []
     y = []
     text = []
-    for result in reason['series'][:30]:
+    for result in reason['series'][:50]:
         y.append(result['total'])
         x.append(result['series'])
         text.append('{} closed files'.format(result['total']))
@@ -240,10 +271,10 @@ def get_series(series_id):
     text = []
     for index, reason in enumerate(series_totals['reasons']):
         series_totals['reasons'][index]['definition'] = REASONS[reason['reason']]['definition']
-        x.append(reason['reason'])
-        y.append(reason['total'])
+        y.append(reason['reason'])
+        x.append(reason['total'])
         text.append('{} closed files'.format(reason['total']))
-    reasons_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
+    reasons_data = [{'x': x[::-1], 'y': y[::-1], 'text': text[::-1], 'hoverinfo': 'y+text', 'type': 'bar', 'orientation': 'h', 'marker': {'color': '#800080'}}]
     series = db.series.find_one({'identifier': series_id})
     end_date = datetime.datetime(now-20, 12, 31, 0, 0, 0)
     total_open = db.items.find({'harvests': harvest_date, 'contents_dates.end_date.date': {'$lte': end_date}, 'series': series_id}).count()
@@ -264,7 +295,10 @@ def get_items():
     q = request.args.get('q', None)
     sort = request.args.get('sort', 'series')
     start_year = request.args.get('start_year', None)
+    start_direction = request.args.get('start_direction', 'after')
     end_year = request.args.get('end_year', None)
+    end_direction = request.args.get('end_direction', 'before')
+    content_year = request.args.get('content_year', None)
     series = request.args.get('series', None)
     reasons = request.args.getlist('reasons')
     reasons_match = request.args.get('reasons_match', 'any')
@@ -286,21 +320,25 @@ def get_items():
             query['reasons'] = {'$all': reasons}
         elif reasons_match == 'exact':
                 query['reasons'] = reasons
-    if start_year and end_year:
-        start_year = int(start_year)
-        end_year = int(end_year)
-        start_date = datetime.datetime(start_year, 1, 1, 0, 0, 0)
-        end_date = datetime.datetime(end_year, 12, 31, 0, 0, 0)
-        query['contents_dates.start_date.date'] = {'$gte': start_date}
-        query['contents_dates.end_date.date'] = {'$lte': end_date}
-    elif start_year:
+    if start_year:
         start_year = int(start_year)
         start_date = datetime.datetime(start_year, 1, 1, 0, 0, 0)
-        query['contents_dates.start_date.date'] = {'$gte': start_date}
-    elif end_year:
+        if start_direction == 'before':
+            query['contents_dates.start_date.date'] = {'$lte': start_date}
+        elif start_direction == 'after':
+            query['contents_dates.start_date.date'] = {'$gte': start_date}
+    if end_year:
         end_year = int(end_year)
-        end_date = datetime.datetime(end_year, 12, 31, 0, 0, 0)
-        query['contents_dates.end_date.date'] = {'$lte': end_date}
+        end_date = datetime.datetime(end_year, 1, 1, 0, 0, 0)
+        if end_direction == 'before':
+            query['contents_dates.end_date.date'] = {'$lte': end_date}
+        elif end_direction == 'after':
+            query['contents_dates.end_date.date'] = {'$gte': end_date}
+    if content_year:
+        content_year = int(content_year)
+        content_date = datetime.datetime(content_year, 1, 1, 0, 0, 0)
+        query['contents_dates.start_date.date'] = {'$lte': content_date}
+        query['contents_dates.end_date.date'] = {'$gte': content_date}
     if age:
         age = int(age)
         end_date = datetime.datetime(now-age, 12, 31, 0, 0, 0)
@@ -326,7 +364,7 @@ def get_items():
     items = db.items.find(query).sort(order_by).skip((page-1)*results_per_page).limit(results_per_page)
     total = db.items.find(query).count()
     pagination = Pagination(page=page, total=total, record_name='items', bs_version=3, per_page=results_per_page)
-    return render_template('items.html', items=items, pagination=pagination, reasons_list=reasons_list, series_list=series_list, years=years, q=q, reasons=reasons, series=series, start_year=start_year, end_year=end_year, age=age, sort=sort, reasons_match=reasons_match, decision_after=decision_after, decision_before=decision_before)
+    return render_template('items.html', items=items, pagination=pagination, reasons_list=reasons_list, series_list=series_list, years=years, q=q, reasons=reasons, series=series, start_year=start_year, end_year=end_year, age=age, sort=sort, reasons_match=reasons_match, decision_after=decision_after, decision_before=decision_before, start_direction=start_direction, end_direction=end_direction, content_year=content_year)
 
 
 @app.route('/items/<id>/')

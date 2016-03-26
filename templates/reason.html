@@ -28,16 +28,10 @@
               <span class="text-muted">is the average age of decisions to closed files citing this reason</span>
             </div>
           </div>
-          <div class="row">
-              <div class="col-xs-12 col-md-6">
-              <h3>How old are closed files that cite this reason?<br><small>Click to view files</small></h3>
-                <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
-              </div>
-              <div class="col-xs-12 col-md-6">
-                <h3>What series contain most closed files citing this reason?<br><small>Click to view files</small></h3>                
-                <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
-              </div>
-            </div>
+            <h3>How old are closed files that cite this reason?<br><small>Click to view files</small></h3>
+            <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
+            <h3>What series contain most closed files citing this reason?<br><small>Click to view files</small></h3>                
+            <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
             <h3 class="sub-header">Here's some examples of closed files that cite this reason&hellip;</h3>
             <div class="table-responsive">
               <table class="table table-striped">
@@ -70,20 +64,20 @@
             <!-- JAVASCRIPT CODE GOES HERE -->
             var layout1 = {
                             font: { family: "Helvetica Neue", color: '#333333'},
-                            margin: {t: 0},
-                            height: 500
+                            margin: {t: 20},
+                            height: 500,
                         };
             Plotly.newPlot('ages', {{ age_data|tojson|safe }}, layout1);
             $('#ages').on('plotly_click', function(event, data) {
                 var year = data.points[0].data.x[data.points[0].pointNumber];
-                window.location.href = '/items/?reason={{ reason.reason }}&sort=oldest&start_year=' + year;
+                window.location.href = '/items/?reasons={{ reason.reason }}&sort=oldest&start_year=' + year;
                 //$scope.$apply();
             });
 
             var layout2 = {
                             font: { family: "Helvetica Neue", color: '#333333'},
                             height: 500, 
-                            margin: {t: 0},
+                            margin: {t: 20},
                             bargap: 0.05,
                             yaxis: {
                                 ticksuffix: ' '
@@ -105,7 +99,7 @@
             Plotly.newPlot('reasons', {{ series_data|tojson|safe }}, layout2);
             $('#reasons').on('plotly_click', function(event, data) {
                 var series = data.points[0].data.x[data.points[0].pointNumber];
-                window.location.href = '/items/?reason={{ reason.reason }}&series=' + series;
+                window.location.href = '/items/?reasons={{ reason.reason }}&series=' + series;
                 //$scope.$apply();
             });
 
