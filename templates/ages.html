@@ -43,10 +43,19 @@
                                 y: 500,
                                 xref: 'x',
                                 yref: 'y',
-                                text: 'Start of the Open Period',
+                                text: 'Start of the open period',
                                 showarrow: true,
                                 ax: 0,
                                 ay: -200
+                              },
+                              {
+                                x: 0.5,
+                                y: 0.5,
+                                xref: 'paper',
+                                yref: 'paper',
+                                text: '{{ ((open_total / total) * 100)|round(2, "ceil") }}% of closed files are in the open period',
+                                showarrow: false,
+                                font: { size: 20}
                               }
                             ]
                         };

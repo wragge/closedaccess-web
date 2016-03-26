@@ -137,9 +137,13 @@ def get_ages():
         count += year['total']
         x.append(now - year['year'])
         y.append(count)
-        text.append('{} closed files are more than {} years old'.format(new_total, now - year['year']))
+        text.append('{} ({:.2f}%) closed files are more than {} years old'.format(new_total, (new_total / float(total)) * 100, now - year['year']))
     open_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'text', 'fill': 'tozeroy', 'type': 'scatter', 'marker': {'color': '#800080'}}]
-    return render_template('ages.html', years=years, data=data, open_data=open_data, now=now)
+    open_date = datetime.datetime(now - 21, 12, 31, 0, 0, 0)
+    print open_date
+    open_total = db.items.find({'harvests': harvest_date, 'contents_dates.end_date.date': {'$lte': open_date}}).count()
+    print open_total
+    return render_template('ages.html', years=years, data=data, open_data=open_data, now=now, open_total=open_total, total=total)
 
 
 @app.route('/reasons/')
@@ -322,23 +326,24 @@ def get_items():
                 query['reasons'] = reasons
     if start_year:
         start_year = int(start_year)
-        start_date = datetime.datetime(start_year, 1, 1, 0, 0, 0)
         if start_direction == 'before':
+            start_date = datetime.datetime(start_year, 12, 31, 0, 0, 0)
             query['contents_dates.start_date.date'] = {'$lte': start_date}
         elif start_direction == 'after':
+            start_date = datetime.datetime(start_year, 1, 1, 0, 0, 0)
             query['contents_dates.start_date.date'] = {'$gte': start_date}
     if end_year:
         end_year = int(end_year)
-        end_date = datetime.datetime(end_year, 1, 1, 0, 0, 0)
         if end_direction == 'before':
+            end_date = datetime.datetime(end_year, 12, 31, 0, 0, 0)
             query['contents_dates.end_date.date'] = {'$lte': end_date}
         elif end_direction == 'after':
+            end_date = datetime.datetime(end_year, 1, 1, 0, 0, 0)
             query['contents_dates.end_date.date'] = {'$gte': end_date}
     if content_year:
         content_year = int(content_year)
-        content_date = datetime.datetime(content_year, 1, 1, 0, 0, 0)
-        query['contents_dates.start_date.date'] = {'$lte': content_date}
-        query['contents_dates.end_date.date'] = {'$gte': content_date}
+        query['contents_dates.start_date.date'] = {'$lte': datetime.datetime(content_year, 12, 31, 0, 0, 0)}
+        query['contents_dates.end_date.date'] = {'$gte': datetime.datetime(content_year, 1, 1, 0, 0, 0)}
     if age:
         age = int(age)
         end_date = datetime.datetime(now-age, 12, 31, 0, 0, 0)
