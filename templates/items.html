@@ -35,12 +35,19 @@
     <input type="text" class="form-control" id="q" name="q" placeholder="keywords"{% if q %} value="{{ q }}"{% endif %}>
   </div>
   <div class="form-group">
-    <label for="reason">Cites this reason</label>
-    <select id="reason" name="reason" class="form-control">
-      <option value="">Any</option>
-    {% for option in reasons %}
-      <option{%if option.reason == reason %} selected="selected"{% endif %}>{{ option.reason }}</option>
+    <label for="reasons">Cites these reasons</label>
+    <select multiple id="reasons" name="reasons" class="form-control">
+    {% for option in reasons_list %}
+      <option{%if option.reason in reasons %} selected="selected"{% endif %}>{{ option.reason }}</option>
     {% endfor %}
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="reasons_match">Type of match on reasons</label>
+    <select id="reasons_match" name="reasons_match" class="form-control">
+      <option{%if reasons_match == 'any' %} selected="selected"{% endif %}>any</option>
+      <option{%if reasons_match == 'all' %} selected="selected"{% endif %}>all</option>
+      <option{%if reasons_match == 'exact' %} selected="selected"{% endif %}>exact</option>
     </select>
   </div>
   <div class="form-group">
@@ -78,6 +85,27 @@
       <option{%if sort == 'youngest' %} selected="selected"{% endif %} value="youngest">youngest first</option>
     </select>
   </div>
+  <div class="form-group date">
+    <label for="decision_after">Access decision made after</label>
+    <div class="input-group">
+    <input type="text" class="form-control" id="decision_after" name="decision_after" placeholder="YYYY-MM-DD"{% if decision_after %} value="{{ decision_after }}"{% endif %}><span class="input-group-addon"><i class="fa fa-calendar fa-fw"></i></span></i></span></div>
+    </div>
+  <div class="form-group date">
+    <label for="decision_before">Access decision made before</label>
+    <div class="input-group">
+    <input type="text" class="form-control" id="decision_before" name="decision_before" placeholder="YYYY-MM-DD"{% if decision_before %} value="{{ decision_before }}"{% endif %}><span class="input-group-addon"><i class="fa fa-calendar fa-fw"></i></span></i></span></div>
+  </div>
   <button type="submit" class="btn btn-default">Submit</button>
 </form>
+{% endblock %}
+{% block extrastyles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.min.css">
+{% endblock %}
+{% block extrascripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/js/bootstrap-datepicker.min.js"></script>
+<script>
+$('.form-group.date').datepicker({
+    format: "yyyy-mm-dd"
+});
+</script>
 {% endblock %}

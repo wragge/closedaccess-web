@@ -8,6 +8,7 @@ import random
 from bson.son import SON
 import os
 import datetime
+from dateutil.parser import *
 
 
 MONGOLAB_URL = os.environ['MONGOLAB_URL']
@@ -253,10 +254,10 @@ def get_series(series_id):
 @app.route('/items/')
 def get_items():
     db = get_db()
-    results_per_page = 20
+    results_per_page = 100
     harvest_id = request.args.get('harvest', None)
     harvest_date = convert_harvest_date(harvest_id)
-    reasons = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})['results']
+    reasons_list = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})['results']
     series_list = sorted([series['series'] for series in db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'series_totals'})['results']])
     now = datetime.datetime.now().year
     years = [year for year in range(1800, now)]
@@ -265,7 +266,10 @@ def get_items():
     start_year = request.args.get('start_year', None)
     end_year = request.args.get('end_year', None)
     series = request.args.get('series', None)
-    reason = request.args.get('reason', None)
+    reasons = request.args.getlist('reasons')
+    reasons_match = request.args.get('reasons_match', 'any')
+    decision_after = request.args.get('decision_after', None)
+    decision_before = request.args.get('decision_before', None)
     age = request.args.get('age', None)
     try:
         page = int(request.args.get('page', 1))
@@ -275,8 +279,13 @@ def get_items():
     query['harvests'] = harvest_date
     if q:
         query['$text'] = {'$search': q}
-    if reason:
-        query['reasons'] = reason
+    if reasons:
+        if reasons_match == 'any':
+            query['reasons'] = {'$in': reasons}
+        elif reasons_match == 'all':
+            query['reasons'] = {'$all': reasons}
+        elif reasons_match == 'exact':
+                query['reasons'] = reasons
     if start_year and end_year:
         start_year = int(start_year)
         end_year = int(end_year)
@@ -298,6 +307,16 @@ def get_items():
         query['contents_dates.end_date.date'] = {'$lte': end_date}
     if series:
         query['series'] = series
+    if decision_after and decision_before:
+        decision_after_date = parse(decision_after)
+        decision_before_date = parse(decision_before)
+        query['access_decision.start_date.date'] = {'$gte': decision_after_date, '$lte': decision_before_date}
+    elif decision_after:
+        decision_after_date = parse(decision_after)
+        query['access_decision.start_date.date'] = {'$gte': decision_after_date}
+    elif decision_before:
+        decision_before_date = parse(decision_before)
+        query['access_decision.start_date.date'] = {'$lte': decision_before_date}
     if sort == 'series':
         order_by = [['series', 1], ['control_symbol', 1]]
     elif sort == 'oldest':
@@ -307,7 +326,7 @@ def get_items():
     items = db.items.find(query).sort(order_by).skip((page-1)*results_per_page).limit(results_per_page)
     total = db.items.find(query).count()
     pagination = Pagination(page=page, total=total, record_name='items', bs_version=3, per_page=results_per_page)
-    return render_template('items.html', items=items, pagination=pagination, reasons=reasons, series_list=series_list, years=years, q=q, reason=reason, series=series, start_year=start_year, end_year=end_year, age=age, sort=sort)
+    return render_template('items.html', items=items, pagination=pagination, reasons_list=reasons_list, series_list=series_list, years=years, q=q, reasons=reasons, series=series, start_year=start_year, end_year=end_year, age=age, sort=sort, reasons_match=reasons_match, decision_after=decision_after, decision_before=decision_before)
 
 
 @app.route('/items/<id>/')
