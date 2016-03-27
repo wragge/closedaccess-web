@@ -183,21 +183,27 @@ def get_reason(reason_id):
     reason['reason'] = reason_id
     reason['definition'] = REASONS[reason_id]['definition']
     reason['source'] = REASONS[reason_id]['source']
-    count = 0
-    total_age = 0
     x = []
     y = []
     text = []
+    for year in reason['year_totals']:
+        y.append(year['total'])
+        x.append(year['year'])
+        text.append('{} closed files'.format(year['total']))
+    year_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
+    count = 0
+    total = reason['total']
     now = datetime.datetime.now().year
-    for result in reason['ages']:
-        if result['year'] != 1800:
-            total_age += (now - result['year']) * result['total']
-            y.append(reason['total'] - count)
-            x.append(result['year'])
-            text.append('{} closed files start in {} or later'.format(reason['total'] - count, result['year']))
-            count += result['total']
-    age_data = [{'x': x, 'y': y, 'text': text, 'fill': 'tozeroy', 'hoverinfo': 'x+text', 'type': 'scatter', 'marker': {'color': '#800080'}}]
-    reason['average_age'] = total_age / count
+    x = []
+    y = []
+    text = []
+    for result in reason['end_totals'][::-1]:
+        new_total = total - count
+        count += result['total']
+        x.append(now - result['year'])
+        y.append(count)
+        text.append('{} ({:.2f}%) of closed files are more than {} years old'.format(new_total, (new_total / float(total)) * 100, now - result['year']))
+    open_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'text', 'fill': 'tozeroy', 'type': 'scatter', 'marker': {'color': '#800080'}}]
     x = []
     y = []
     text = []
@@ -214,7 +220,7 @@ def get_reason(reason_id):
             count += result['total']
     reason['decision_age'] = total_age / count
     items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'reasons': reason_id, 'harvests': harvest_date}).limit(20)
-    return render_template('reason.html', reason=reason, harvest=harvest_date, age_data=age_data, series_data=series_data, items=items)
+    return render_template('reason.html', reason=reason, harvest=harvest_date, year_data=year_data, open_data=open_data, now=now, series_data=series_data, items=items)
 
 
 @app.route('/series/')
@@ -266,21 +272,27 @@ def get_series(series_id):
     harvest_date = convert_harvest_date(harvest)
     db = get_db()
     series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'series': series_id})
+    x = []
+    y = []
+    text = []
+    for year in series_totals['year_totals']:
+        y.append(year['total'])
+        x.append(year['year'])
+        text.append('{} closed files'.format(year['total']))
+    year_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
     count = 0
-    total_age = 0
+    total = series_totals['total']
     now = datetime.datetime.now().year
     x = []
     y = []
     text = []
-    for result in series_totals['ages']:
-        if result['year'] != 1800:
-            total_age += (now - result['year']) * result['total']
-            y.append(series_totals['total'] - count)
-            x.append(result['year'])
-            text.append('{} closed files start in {} or later'.format(series_totals['total'] - count, result['year']))
-            count += result['total']
-    age_data = [{'x': x, 'y': y, 'text': text, 'fill': 'tozeroy', 'hoverinfo': 'x+text', 'type': 'scatter', 'marker': {'color': '#800080'}}]
-    series_totals['average_age'] = total_age / count
+    for result in series_totals['end_totals'][::-1]:
+        new_total = total - count
+        count += result['total']
+        x.append(now - result['year'])
+        y.append(count)
+        text.append('{} ({:.2f}%) of closed files are more than {} years old'.format(new_total, (new_total / float(total)) * 100, now - result['year']))
+    open_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'text', 'fill': 'tozeroy', 'type': 'scatter', 'marker': {'color': '#800080'}}]
     x = []
     y = []
     text = []
@@ -294,7 +306,7 @@ def get_series(series_id):
     end_date = datetime.datetime(now-20, 12, 31, 0, 0, 0)
     total_open = db.items.find({'harvests': harvest_date, 'contents_dates.end_date.date': {'$lte': end_date}, 'series': series_id}).count()
     items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'series': series_id, 'harvests': harvest_date}).limit(20)
-    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date, age_data=age_data, reasons_data=reasons_data, total_open=total_open, now=now, items=items)
+    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date, year_data=year_data, open_data=open_data, reasons_data=reasons_data, total_open=total_open, now=now, items=items)
 
 
 @app.route('/items/')
@@ -377,6 +389,8 @@ def get_items():
         order_by = [['contents_dates.start_date.date', 1]]
     elif sort == 'youngest':
         order_by = [['contents_dates.start_date.date', -1]]
+    elif sort == 'decisions':
+        order_by = [['access_decision.start_date.date', 1]]
     items = db.items.find(query).sort(order_by).skip((page-1)*results_per_page).limit(results_per_page)
     total = db.items.find(query).count()
     pagination = Pagination(page=page, total=total, record_name='items', bs_version=3, per_page=results_per_page)

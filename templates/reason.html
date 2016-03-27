@@ -13,7 +13,7 @@
               <span class="text-muted">cite this as a reason you're not allowed to see them</span>
             </div>
             <div class="col-xs-6 col-sm-3 placeholder">
-              <div class="circle-text">{{ reason.average_age }}</div>
+              <div class="circle-text">{{ reason.average_age|round|int }}</div>
               <h4>years</h4>
               <span class="text-muted">is the average age of closed files that cite this reason, based on the date of their earliest content</span>
             </div>
@@ -28,11 +28,27 @@
               <span class="text-muted">is the average age of decisions to closed files citing this reason</span>
             </div>
           </div>
-            <h3>How old are closed files that cite this reason?<br><small>Click to view files</small></h3>
-            <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
-            <h3>What series contain most closed files citing this reason?<br><small>Click to view files</small></h3>                
-            <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
-            <h3 class="sub-header">Here's some examples of closed files that cite this reason&hellip;</h3>
+            <div class="question">
+                <h3>How old are closed files in this series?<br><small>Click to view files</small></h3>
+                <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
+                <div class="pull-right">
+                    <button id="hideDates1" class="btn btn-primary btn-xs">Hide dodgy dates</button>
+                    <button id="showDates1" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+                </div>
+            </div>
+            <div class="question">
+                <h3>How old are closed files that cite this reason?<br><small>Click to view files</small></h3>
+                <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
+                <div class="pull-right">
+                    <button id="hideDates2" class="btn btn-primary btn-xs">Hide dodgy dates</button>
+                    <button id="showDates2" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+                </div>
+            </div>
+            <div class="question">
+                <h3>What series contain most closed files citing this reason?<br><small>Click to view files</small></h3>                
+                <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
+            </div>
+            <h3>Here's some examples of closed files that cite this reason&hellip;</h3>
             <div class="table-responsive">
               <table class="table table-striped">
                 <thead>
@@ -64,14 +80,34 @@
             <!-- JAVASCRIPT CODE GOES HERE -->
             var layout1 = {
                             font: { family: "Helvetica Neue", color: '#333333'},
-                            margin: {t: 20},
-                            height: 500,
+                            margin: {t: 30, b: 40, l: 100},
+                            height: 500
                         };
-            Plotly.newPlot('ages', {{ age_data|tojson|safe }}, layout1);
+            var opendata = {{ open_data|tojson|safe }}
+            Plotly.newPlot('ages', opendata, layout1);
             $('#ages').on('plotly_click', function(event, data) {
-                var year = data.points[0].data.x[data.points[0].pointNumber];
-                window.location.href = '/items/?reasons={{ reason.reason }}&sort=oldest&start_year=' + year;
+                var age = data.points[0].data.x[data.points[0].pointNumber];
+                var year = {{ now }} - age;
+                window.location.href = '/items/?reasons={{ reason.reason}}&sort=youngest&end_direction=before&end_year=' + year;
                 //$scope.$apply();
+            });
+            $('#hideDates2').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                var newdata = JSON.parse(JSON.stringify(opendata));
+                newdata[0].x = newdata[0].x.slice(0, -1);
+                newdata[0].y = newdata[0].y.slice(0, -1);
+                newdata[0].text = newdata[0].text.slice(0, -1);
+                Plotly.newPlot('ages', newdata, layout1);
+                $('#hideDates2').toggleClass('disabled');
+                $('#showDates2').toggleClass('disabled');
+              }
+            });
+            $('#showDates2').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                Plotly.newPlot('ages', opendata, layout1);
+                $('#hideDates2').toggleClass('disabled');
+                $('#showDates2').toggleClass('disabled');
+              }
             });
 
             var layout2 = {
@@ -101,6 +137,38 @@
                 var series = data.points[0].data.x[data.points[0].pointNumber];
                 window.location.href = '/items/?reasons={{ reason.reason }}&series=' + series;
                 //$scope.$apply();
+            });
+
+            var layout3 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            margin: {t: 30, b: 40, l: 100},
+                            height: 500
+                        };
+            
+            var data = {{ year_data|tojson|safe }}
+            Plotly.newPlot('years', data, layout3);
+            $('#years').on('plotly_click', function(event, data) {
+                var year = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/items/?reasons={{ reason.reason }}&sort=oldest&content_year=' + year;
+                //$scope.$apply();
+            });
+            $('#hideDates1').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                var newdata = JSON.parse(JSON.stringify(data));
+                newdata[0].x = newdata[0].x.slice(1);
+                newdata[0].y = newdata[0].y.slice(1);
+                newdata[0].text = newdata[0].text.slice(1);
+                Plotly.newPlot('years', newdata, layout3);
+                $('#hideDates1').toggleClass('disabled');
+                $('#showDates1').toggleClass('disabled');
+              }
+            });
+            $('#showDates1').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                Plotly.newPlot('years', data, layout3);
+                $('#hideDates1').toggleClass('disabled');
+                $('#showDates1').toggleClass('disabled');
+              }
             });
 
           </script>

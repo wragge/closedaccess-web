@@ -94,14 +94,6 @@
     {% endfor %}
     </select>
   </div>
-  <div class="form-group">
-    <label for="sort">Sort the results by</label>
-    <select id="sort" name="sort" class="form-control">
-      <option{%if sort == 'series' %} selected="selected"{% endif %}>series</option>
-      <option{%if sort == 'oldest' %} selected="selected"{% endif %} value="oldest">oldest first</option>
-      <option{%if sort == 'youngest' %} selected="selected"{% endif %} value="youngest">youngest first</option>
-    </select>
-  </div>
   <div class="form-group date">
     <label for="decision_after">Access decision made after</label>
     <div class="input-group">
@@ -111,6 +103,15 @@
     <label for="decision_before">Access decision made before</label>
     <div class="input-group">
     <input type="text" class="form-control" id="decision_before" name="decision_before" placeholder="YYYY-MM-DD"{% if decision_before %} value="{{ decision_before }}"{% endif %}><span class="input-group-addon"><i class="fa fa-calendar fa-fw"></i></span></i></span></div>
+  </div>
+  <div class="form-group">
+    <label for="sort">Sort the results by</label>
+    <select id="sort" name="sort" class="form-control">
+      <option{%if sort == 'series' %} selected="selected"{% endif %}>series</option>
+      <option{%if sort == 'oldest' %} selected="selected"{% endif %} value="oldest">oldest first</option>
+      <option{%if sort == 'youngest' %} selected="selected"{% endif %} value="youngest">youngest first</option>
+      <option{%if sort == 'decisions' %} selected="selected"{% endif %} value="decisions">date of decision</option>
+    </select>
   </div>
   <button type="submit" class="btn btn-default">Submit</button>
 </form>

@@ -30,8 +30,8 @@
                         };
             Plotly.newPlot('series', {{ data|tojson|safe }}, layout);
             $('#series').on('plotly_click', function(event, data) {
-                var reason = data.points[0].data.y[data.points[0].pointNumber];
-                window.location.href = '/series/' + reason;
+                var series = data.points[0].data.y[data.points[0].pointNumber];
+                window.location.href = '/series/' + series.replace('/', '_');
                 //$scope.$apply();
             });
 
