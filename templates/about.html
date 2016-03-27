@@ -2,10 +2,30 @@
 {% block content %}
       
           <h1 class="page-header">About Closed Access</h1>
+          <p class="lead">Most records created by the Commonwealth Government are available to the public once the content is more than twenty years old. But not all. Before they&rsquo;re handed over, files undergo a process called &lsquo;access examination&rsquo; to make sure there&rsquo;s nothing in them that should be shielded from the public. If a file is deemed to be full of risky stuff then the access examiners might decide to keep it away from us entirely. These files are given the access status of &lsquo;closed&rsquo; in the National Archives of Australia&rsquo;s online database, <a href="http://recordsearch.naa.gov.au/scripts/Logon.asp?N=guest">RecordSearch</a>.</p>
+
+          <p class="lead">How is this decision made? The <a href="http://www.austlii.edu.au/au/legis/cth/consol_act/aa198398/">Archives Act 1983</a> defines which records can be exempted from the twenty year rule. For example, section 33(1)(a) of the Act says that if a file contains information that could cause &lsquo;damage to the security, defence or international relations of the Commonwealth&rsquo; it can be withheld from public access. When an access decision is made the date of the decision and the reasons why the file has been closed are added to it&rsquo;s details in RecordSearch.</p>
+
+          <p class="lead">Open records in the National Archives are a rich source for historical research. But what can closed records tell us? This project is an attempt to read back from the available metadata to understand how the access system works. What are we allowed to see and why?</p>
+
           <p class="bg-danger lead wip">BE WARNED! This is a work in progress. It's part of an ongoing research project by <a href="http://discontents.com.au/about-me">Tim Sherratt</a> (<a href="http://twitter.com/wragge">@wragge</a>). As a result, this interface is likely to change. That said, pretty much everything <em>should</em> work, so feel free to poke around and see what you can find. Have fun!</p>
 
-          <h2>How does the access examination process work?</h2>
-          <p>That&rsquo;s pretty much the question this project is trying to answer &ndash; working not from the policy and procedures, but from the files that end up being withheld from the public. The &lsquo;closed&rsquo; files.</p>
+          <h2>Beyond RecordSearch</h2>
+          <p class="lead">Metadata describing closed files is available in RecordSearch, but it&rsquo;s not easy to use. For example, you can&rsquo;t search for the reason the file was closed or when the decision was made. So, using <a href="https://github.com/wragge/closed_access">my trusty screen scraper</a>, I&rsquo;ve harvested the data from RecordSearch and created a new database and interface. That&rsquo;s what this site is.</p>
+
+          <p class="lead">The interface is pretty basic, but you can browse by <a href="/reasons/">reason</a>, <a href="/series/">series</a>, and <a href="/ages/">age</a>, and search for <a href="/items/">files</a> using a number of different filters. Most of the charts are clickable, so just follow your nose and see where you end up.</p>
+
+          <p class="lead">At the moment I&rsquo;m still thinking about the <a href="/examples/">questions</a> I want to ask. I&rsquo;m still playing around looking for patterns and anomalies. Let me know if you find something odd!</p>
+
+          <h2>Links &amp; resources</h2>
+
+          <h3>Related articles</h3>
+
+          <ul>
+            <li><a href="http://discontents.com.au/unremembering-the-forgotten/">Unremembering the forgotten</a>, my DH2015 keynote, mentioned an earlier harvest of the &lsquo;closed access&rsquo; data.</li>
+          </ul>
+
+          <h3>More on the access examination process</h3>
 
           <p>The National Archives of Australia provides several useful guides that describe how the process is meant to work:
 
@@ -18,14 +38,14 @@
 
           </p>
 
-          <h2>Where&rsquo;s the data?</h2>
+          <h3>The data</h3>
           <p>A full dump of all the harvested data will be available shortly. In the meantime here&rsquo;s:
           <ul>
             <li><a href="https://github.com/wragge/closed_access/blob/master/data/records-closed-in-2015.csv">a CSV dump of all files closed in 2015</a></li>
             <li><a href="https://dx.doi.org/10.6084/m9.figshare.2060052.v1">the same thing on Figshare</a></li>
           </ul>
 
-          <h2>Where&rsquo;s the code?</h2>
+          <h3>The code</h3>
           <p>The harvester code is all Python. This website is built using Flask, Bootstrap, JQuery, and Plotly.
             <ul>
               <li><a href="https://github.com/wragge/closed_access">harvesting code</a> on GitHub</li>
