@@ -25,7 +25,7 @@
               {% for item in series %}
                 <tr>
                   <td>{{ item.series }}</td>
-                  <td>{% if item.title %}<a href="/series/{{ item.series }}/">{{ item.title }}</a>{% else %}<span class="text-danger">Oh dear, couldn't find this series on RecordSearch&hellip;</span>{% endif %}</td>
+                  <td>{% if item.title %}<a href="/series/{{ item.series|replace('/', '_') }}/">{{ item.title }}</a>{% else %}<span class="text-danger">Oh dear, couldn't find this series on RecordSearch&hellip;</span>{% endif %}</td>
                   <td>{{ item.total }}</td>
                 </tr>
               {% endfor %}

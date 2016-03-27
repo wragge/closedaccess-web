@@ -111,6 +111,16 @@ def home():
     return render_template('home.html', items=items, harvest=harvest)
 
 
+@app.route('/about/')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/examples/')
+def examples():
+    return render_template('examples.html')
+
+
 @app.route('/ages/')
 def get_ages():
     harvest = request.args.get('harvest', None)
@@ -251,6 +261,7 @@ def get_series_list():
 
 @app.route('/series/<series_id>/')
 def get_series(series_id):
+    series_id = series_id.replace('_', '/')
     harvest = request.args.get('harvest', None)
     harvest_date = convert_harvest_date(harvest)
     db = get_db()

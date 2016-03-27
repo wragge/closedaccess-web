@@ -168,3 +168,8 @@ a.closed:hover {
 .js-plotly-plot .plotly svg a {
   fill: #ffffff !important;
 }
+
+.question {
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
