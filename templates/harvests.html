@@ -3,29 +3,28 @@
       
           <h1 class="page-header">Harvests</h1>
           <p class="lead">So far there has been {{ harvests|length }} harvest of closed files. Check back around the 1 January next year for the latest closed file excitement.</p>
-
           {% for harvest in harvests %}
           <h2>{{ harvest.harvest_date.strftime('%e %B %Y')}}</h2>
           <div class="row placeholders">
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <div class="circle-text closed">{{ harvest.total }}</div>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/items/" class="circle-text closed">{{ harvest.total }}</a>
               <h4>closed files</h4>
-              <a href="/reasons?harvest={{ harvest.harvest_date.strftime('%Y-%m-%d') }}">explore files</a>
+              <span class="text-muted">on {{ harvest.harvest_date.strftime('%e %B %Y') }}</span>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <div class="circle-text"> ? </div>
-              <h4>years old</h4>
-              <span class="text-muted">(at least)</span>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/reasons/" class="circle-text">{{ harvest.total_reasons }}</a>
+              <h4>reasons</h4>
+              <span class="text-muted">why these files have been closed</span>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <span class="text-muted">Something else</span>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/ages/" class="circle-text">{{ harvest.average_age }}</a>
+              <h4>years</h4>
+              <span class="text-muted">is the average age of these files<br>based on their date of their earliest content</span>
             </div>
-            <div class="col-xs-6 col-sm-3 placeholder">
-              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
-              <h4>Label</h4>
-              <span class="text-muted">Something else</span>
+            <div class="col-xs-6 col-md-3 placeholder">
+              <a href="/series/" class="circle-text">{{ harvest.total_series }}</a>
+              <h4>series</h4>
+              <span class="text-muted">contain closed files</span>
             </div>
           </div>
 

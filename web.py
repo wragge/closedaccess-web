@@ -422,10 +422,7 @@ def get_item(id):
 @app.route('/harvests/')
 def get_harvests():
     db = get_db()
-    all_harvests = db.harvests.find().sort('harvest_date', -1)
-    harvests = []
-    for harvest in all_harvests:
-        harvests.append({'harvest_date': harvest['harvest_date'], 'total': harvest['total']})
+    harvests = list(db.harvests.find().sort('harvest_date', -1))
     return render_template('harvests.html', harvests=harvests)
 
 

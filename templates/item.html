@@ -17,7 +17,7 @@
                 <span class="text-muted">based on date of earliest content</span>
               </div>
               <div class="col-xs-6 col-md-3 placeholder">
-                <div class="circle-text">{% if item.open_period %}yes{% else %}no{% endif %}</div>
+                <div class="circle-text{% if not item.open_period %} closed{% endif %}">{% if item.open_period %}yes{% else %}no{% endif %}</div>
                 <h4>{% if not item.open_period %}not {% endif %}in the open period</h4>
                 <span class="text-muted">based on date of latest content</span>
               </div>
