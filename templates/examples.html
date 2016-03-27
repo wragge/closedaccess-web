@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+      
+          <h1 class="page-header">Examples</h1>
+          
+          <h2>Some possible questions</h2>
+
+          <div class="clearfix question">
+            <h3>How many closed files that cite only &lsquo;closed period&rsquo; as the reason are now fully within the open period?</h3>
+
+            <table class="table">
+              <tr><th>Parameter</th><th>Value</th><th>Explanation</th></tr>
+              <tr><td>Reason</td><td><a href="/reasons/Closed%20period/">Closed period</a></td><td></td></tr>
+              <tr><td>Type of match on reason</td><td>Exact</td><td>Show files where 'Closed period' is the only reason (sometimes it will be combined with others).</td></tr>
+              <tr><td>Latest content date</td><td>1995</td><td>21 years before 2016</td></tr>
+              <tr><td>Latest date direction</td><td>Before</td><td>Show files where the latest content date is earlier that the date supplied.</td></tr>
+            </table>
+            <a href="/items/?q=&reasons=Closed+period&reasons_match=exact&content_year=&start_direction=after&start_year=&end_direction=before&end_year=1995&series=&sort=series&decision_after=&decision_before=" class="btn btn-primary btn-lg pull-right">Find the answer!</a>
+          </div>
+          <div class="clearfix question">
+            <h3>How many closed files that are &lsquo;withheld pending advice&rsquo; have been waiting for more than five years?</h3>
+
+            <table class="table">
+              <tr><th>Parameter</th><th>Value</th><th>Explanation</th></tr>
+              <tr><td>Reason</td><td><a href="/reasons/Withheld%20pending%20adv/">Withheld pending adv</a></td><td></td></tr>
+              <tr><td>Type of match on reason</td><td>Exact</td><td>Show files where &lsquo;withheld pending advice&rsquo; is the only reason (sometimes it will be combined with others).</td></tr>
+              <tr><td>Access decision made before</td><td>2010-12-31</td><td>5 years before 2016</td></tr>
+            </table>
+            <a href="/items/?q=&reasons=Withheld+pending+adv&reasons_match=exact&content_year=&start_direction=after&start_year=&end_direction=before&end_year=&series=&sort=series&decision_after=&decision_before=2010-12-31" class="btn btn-primary btn-lg pull-right">Find the answer!</a>
+          </div>
+{% endblock %}
