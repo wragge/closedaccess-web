@@ -1,22 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
       
-          <h1 class="page-header">Ages closed files</h1>
-          <h2>These are the dates of the earliest content in closed files.</h2>
-          
-          <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
+          <h1 class="page-header">Ages</h1>
+          <div class="question">
+            <h3>When was content being added to closed files?</h3>
+            
+            <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
 
-          <div class="pull-right">
-            <button id="hideDates1" class="btn btn-primary btn-xs">Hide dodgy dates</button>
-            <button id="showDates1" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+            <div class="pull-right">
+              <button id="hideDates1" class="btn btn-primary btn-xs">Hide dodgy dates</button>
+              <button id="showDates1" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+            </div>
           </div>
-          <h3>Open period</h3>
-          
-          <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
-          
-          <div class="pull-right">
-            <button id="hideDates2" class="btn btn-primary btn-xs">Hide dodgy dates</button>
-            <button id="showDates2" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+          <div  class="question">
+          <h3>How many closed files are in the open period?</h3>
+            
+            <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
+            
+            <div class="pull-right">
+              <button id="hideDates2" class="btn btn-primary btn-xs">Hide dodgy dates</button>
+              <button id="showDates2" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+            </div>
           </div>
 
 {% endblock %}
