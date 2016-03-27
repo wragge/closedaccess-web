@@ -16,48 +16,56 @@
                 <h4>years old</h4>
                 <span class="text-muted">based on date of earliest content</span>
               </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-              <div class="table-responsive">
-                <table class="table">
-                  <tbody>
-                    <thead>
-                      <th colspan="2">Details as harvested on {{ harvest.strftime('%e %B %Y') }}</th>
-                    </thead>
-                    <tr>
-                      <td>Item barcode</td>
-                      <td>{{ item.identifier }}</td>
-                    </tr>
-                    <tr>
-                      <td>Part of series</td>
-                      <td><a href="/series/{{ item.series}}/">{{ item.series }}</a></td>
-                    </tr>
-                    <tr>
-                      <td>Control symbol</td>
-                      <td>{{ item.control_symbol }}</td>
-                    </tr>
-                    <tr>
-                      <td>Title</td>
-                      <td>{{ item.title }}</td>
-                    </tr>
-                    <tr>
-                      <td>Contents dates</td>
-                      <td>{{ item.contents_dates.date_str }}</td>
-                    </tr>
-                    <tr>
-                      <td>Location</td>
-                      <td>{{ item.location }}</td>
-                    </tr>
-                    <tr>
-                      <td colspan="2">
-                        <a href="http://www.naa.gov.au/cgi-bin/Search?O=I&Number={{ item.identifier }}">View on RecordSearch</a> <a href="http://www.naa.gov.au/cgi-bin/Search?O=I&Number={{ item.identifier }}"><i class="fa fa-external-link"></i></a>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="col-xs-6 col-md-3 placeholder">
+                <div class="circle-text">{% if item.open_period %}yes{% else %}no{% endif %}</div>
+                <h4>{% if not item.open_period %}not {% endif %}in the open period</h4>
+                <span class="text-muted">based on date of latest content</span>
+              </div>
+              <div class="col-xs-6 col-md-3 placeholder">
+                <div class="circle-text">{{ item.decision_age|round|int }}</div>
+                <h4>years since</h4>
+                <span class="text-muted">the access decision was made</span>
               </div>
             </div>
           </div>
+            <div class="table-responsive">
+              <table class="table">
+                <tbody>
+                  <thead>
+                    <th colspan="2">Details as harvested on {{ harvest.strftime('%e %B %Y') }}</th>
+                  </thead>
+                  <tr>
+                    <td>Item barcode</td>
+                    <td>{{ item.identifier }}</td>
+                  </tr>
+                  <tr>
+                    <td>Part of series</td>
+                    <td><a href="/series/{{ item.series}}/">{{ item.series }}</a></td>
+                  </tr>
+                  <tr>
+                    <td>Control symbol</td>
+                    <td>{{ item.control_symbol }}</td>
+                  </tr>
+                  <tr>
+                    <td>Title</td>
+                    <td>{{ item.title }}</td>
+                  </tr>
+                  <tr>
+                    <td>Contents dates</td>
+                    <td>{{ item.contents_dates.date_str }}</td>
+                  </tr>
+                  <tr>
+                    <td>Location</td>
+                    <td>{{ item.location }}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">
+                      <a href="http://www.naa.gov.au/cgi-bin/Search?O=I&Number={{ item.identifier }}">View on RecordSearch</a> <a href="http://www.naa.gov.au/cgi-bin/Search?O=I&Number={{ item.identifier }}"><i class="fa fa-external-link"></i></a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
           <h3>Why is this file closed?</h3>
           <p class="lead">On {{ item.access_decision.start_date.date.strftime('%e %B %Y') }} it was decided that you could not see this file for the following reasons:</p>

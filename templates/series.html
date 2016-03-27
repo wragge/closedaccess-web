@@ -93,23 +93,23 @@
               </table>
             </div>
             <div class="question">
-              <h3>How old are closed files in this series?</h3>
+              <h3>When were closed files in this series being created?<br><small>Click to view files</small></h3>
               <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
-              <div class="pull-right">
+              <div class="pull-right{% if not dodgy %} hidden{% endif %}">
                 <button id="hideDates1" class="btn btn-primary btn-xs">Hide dodgy dates</button>
                 <button id="showDates1" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
               </div>
             </div>
             <div class="question">
-              <h3>How old are closed files in this series?</h3>
+              <h3>How old are closed files in this series?<br><small>Click to view files</small></h3>
               <div id="ages"><!-- Plotly chart will be drawn inside this DIV --></div>
-              <div class="pull-right">
+              <div class="pull-right{% if not dodgy %} hidden{% endif %}">
                 <button id="hideDates2" class="btn btn-primary btn-xs">Hide dodgy dates</button>
                 <button id="showDates2" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
               </div>
             </div>
             <div class="question">
-              <h3>What reasons are cited for closing files in this series?</h3>
+              <h3>What reasons are cited for closing files in this series?<br><small>Click to view files</small></h3>
               <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
             </div>
             <h3 class="sub-header">Here's some examples of closed files in this series&hellip;</h3>

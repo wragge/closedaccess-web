@@ -186,7 +186,10 @@ def get_reason(reason_id):
     x = []
     y = []
     text = []
+    dodgy = False
     for year in reason['year_totals']:
+        if year['year'] == 1800:
+            dodgy = True
         y.append(year['total'])
         x.append(year['year'])
         text.append('{} closed files'.format(year['total']))
@@ -220,7 +223,7 @@ def get_reason(reason_id):
             count += result['total']
     reason['decision_age'] = total_age / count
     items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'reasons': reason_id, 'harvests': harvest_date}).limit(20)
-    return render_template('reason.html', reason=reason, harvest=harvest_date, year_data=year_data, open_data=open_data, now=now, series_data=series_data, items=items)
+    return render_template('reason.html', reason=reason, harvest=harvest_date, year_data=year_data, open_data=open_data, now=now, series_data=series_data, items=items, dodgy=dodgy)
 
 
 @app.route('/series/')
@@ -272,10 +275,13 @@ def get_series(series_id):
     harvest_date = convert_harvest_date(harvest)
     db = get_db()
     series_totals = db.aggregates.find_one({'harvest_date': harvest_date, 'series': series_id})
+    dodgy = False
     x = []
     y = []
     text = []
     for year in series_totals['year_totals']:
+        if year['year'] == 1800:
+            dodgy = True
         y.append(year['total'])
         x.append(year['year'])
         text.append('{} closed files'.format(year['total']))
@@ -306,7 +312,7 @@ def get_series(series_id):
     end_date = datetime.datetime(now-20, 12, 31, 0, 0, 0)
     total_open = db.items.find({'harvests': harvest_date, 'contents_dates.end_date.date': {'$lte': end_date}, 'series': series_id}).count()
     items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'series': series_id, 'harvests': harvest_date}).limit(20)
-    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date, year_data=year_data, open_data=open_data, reasons_data=reasons_data, total_open=total_open, now=now, items=items)
+    return render_template('series.html', series=series, totals=series_totals, harvest=harvest_date, year_data=year_data, open_data=open_data, reasons_data=reasons_data, total_open=total_open, now=now, items=items, dodgy=dodgy)
 
 
 @app.route('/items/')
@@ -402,9 +408,14 @@ def get_item(id):
     db = get_db()
     harvest_date = convert_harvest_date()
     item = db.items.find_one({'identifier': id})
-    end = item['contents_dates']['start_date']['date']
+    start = item['contents_dates']['start_date']['date']
+    end = item['contents_dates']['end_date']['date']
+    decision = item['access_decision']['start_date']['date']
     now = datetime.datetime.now()
-    item['age'] = (now-end).days/365
+    item['age'] = (now-start).days/365
+    if (now.year - end.year) > 21:
+        item['open_period'] = True
+    item['decision_age'] = (now-decision).days/float(365)
     return render_template('item.html', item=item, harvest=harvest_date)
 
 
