@@ -1,4 +1,16 @@
 {% extends "base.html" %}
+{% block extrameta %}
+<title>File details :: {{ item.series }}, {{ item.control_symbol }} :: Closed Access</title>
+<meta property="og:title" content="File details :: {{ item.series }}, {{ item.control_symbol }} :: Closed Access" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://closedaccess.herokuapp.com/{{ item.identifier }}/" />
+<meta property="og:image" content="http://closedaccess.herokuapp.com/static/images/files.png" />
+<meta property="og:site_name" content="Closed Access" />
+<meta property="og:description" content="Details of the file NAA: {{ item.series }}, {{ item.control_symbol }}, {{ item.title }}." />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wragge">
+<meta name="twitter:creator" content="@wragge">
+{% endblock %}
 {% block content %}
       
           <h1 class="page-header">{{ item.series }}, {{ item.control_symbol }}</h1>

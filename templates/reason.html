@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+{% block extrameta %}
+<title>Reason :: {{ reason.reason }} :: Closed Access</title>
+<meta property="og:title" content="Reason :: {{ reason.reason }} :: Closed Access" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://closedaccess.herokuapp.com/reasons/{{ reason.reason }}/" />
+<meta property="og:image" content="http://closedaccess.herokuapp.com/static/images/reasons.png" />
+<meta property="og:site_name" content="Closed Access" />
+<meta property="og:description" content="Details of '{{ reason.reason }}' used as a reason for keeping files from public access." />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wragge">
+<meta name="twitter:creator" content="@wragge">
+
+{% endblock %}
 {% block content %}
       
           <h1 class="page-header">{{ reason.reason }}</h1>
