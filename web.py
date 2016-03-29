@@ -217,13 +217,23 @@ def get_reason(reason_id):
     series_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
     count = 0
     total_age = 0
+    x = []
+    y = []
+    text = []
+    decision_dodgy = False
     for result in reason['decisions']:
+        if result['year'] == 1900:
+            decision_dodgy = True
+        y.append(result['total'])
+        x.append(result['year'])
+        text.append('{} closed files'.format(result['total']))
         if result['year'] != 1800:
             total_age += (now - result['year']) * result['total']
             count += result['total']
+    decision_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
     reason['decision_age'] = total_age / count
     items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'reasons': reason_id, 'harvests': harvest_date}).limit(20)
-    return render_template('reason.html', reason=reason, harvest=harvest_date, year_data=year_data, open_data=open_data, now=now, series_data=series_data, items=items, dodgy=dodgy)
+    return render_template('reason.html', reason=reason, harvest=harvest_date, year_data=year_data, open_data=open_data, now=now, series_data=series_data, decision_data=decision_data, items=items, dodgy=dodgy, decision_dodgy=decision_dodgy)
 
 
 @app.route('/series/')
