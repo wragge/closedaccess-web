@@ -13,8 +13,8 @@
 {% endblock %}
 {% block content %}
       
-          <h1 class="page-header">{{ series.identifier }}</h1>
-          <h2>{{ series.title }}</h2>
+            <h1 class="page-header">{{ series.identifier }}</h1>
+            <h2>{{ series.title }}</h2>
             <div class="placeholders row">
               <div class="col-xs-6 col-sm-3 placeholder">
                 <a href="/items?series={{ series.identifier }}" class="circle-text closed">{{ totals.total }}</a> 
@@ -198,7 +198,7 @@
                         };
             Plotly.newPlot('reasons', {{ reasons_data|tojson|safe }}, layout2);
             $('#reasons').on('plotly_click', function(event, data) {
-                var reason = data.points[0].data.x[data.points[0].pointNumber];
+                var reason = data.points[0].data.y[data.points[0].pointNumber];
                 window.location.href = '/items/?series={{ series.identifier}}&reasons=' + reason;
                 //$scope.$apply();
             });

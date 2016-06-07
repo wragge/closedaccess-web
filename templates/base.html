@@ -49,20 +49,20 @@
           {% block content %}{% endblock %}
         </div>
         <div class="col-sm-3 col-md-2 sidebar col-md-pull-2">
-            <div class="visible-xs">
-              {% block search_form %}{% endblock %}
-            </div>
-            <ul class="nav nav-sidebar">
-              <li {% if request.path == "/" %}class="active"{% endif %}><a href="/">Overview <span class="sr-only">(current)</span></a></li>
-              <li {% if "/items/" in request.path %}class="active"{% endif %}><a href="/items/">Files</a></li>
-              <li {% if "/reasons/" in request.path %}class="active"{% endif %}><a href="/reasons/">Reasons</a></li>
-              <li {% if "/ages/" in request.path %}class="active"{% endif %}><a href="/ages/">Ages</a></li>
-              <li {% if "/series/" in request.path %}class="active"{% endif %}><a href="/series/">Series</a></li>
-              <li {% if "/harvests/" in request.path %}class="active"{% endif %}><a href="/harvests/">Harvests</a></li>
-            </ul>
-            <div class="hidden-xs">
-              {{ self.search_form() }}
-            </div>
+          <div class="visible-xs">
+            {% block search_form %}{% endblock %}
+          </div>
+          <ul class="nav nav-sidebar">
+            <li {% if request.path == "/" %}class="active"{% endif %}><a href="/">Overview <span class="sr-only">(current)</span></a></li>
+            <li {% if "/items/" in request.path %}class="active"{% endif %}><a href="/items/">Files</a></li>
+            <li {% if "/reasons/" in request.path %}class="active"{% endif %}><a href="/reasons/">Reasons</a></li>
+            <li {% if "/ages/" in request.path %}class="active"{% endif %}><a href="/ages/">Ages</a></li>
+            <li {% if "/series/" in request.path %}class="active"{% endif %}><a href="/series/">Series</a></li>
+            <li {% if "/decisions/" in request.path %}class="active"{% endif %}><a href="/decisions/">Decisions</a></li>
+            <li {% if "/harvests/" in request.path %}class="active"{% endif %}><a href="/harvests/">Harvests</a></li>
+          </ul>
+          <div class="hidden-xs">
+            {{ self.search_form() }}
           </div>
         </div>
       </div>

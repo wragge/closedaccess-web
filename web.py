@@ -8,6 +8,7 @@ import random
 from bson.son import SON
 import os
 import datetime
+import calendar
 from dateutil.parser import *
 
 
@@ -20,7 +21,7 @@ api.decorators = [cors.crossdomain(origin='*', methods=['GET'],)]
 
 REASONS = {
     '33(1)(a)': {'definition': 'contains information or matter the disclosure of which under this Act could reasonably be expected to cause damage to the security, defence or international relations of the Commonwealth', 'source': 'act'},
-    '33(1)(b)': {'definition':  'contains information or matter: (i) that was communicated in confidence by, or on behalf of, a foreign government, an authority of a foreign government or an international organisation (the foreign entity) to the Government of the Commonwealth, to an authority of the Commonwealth or to a person who received the communication on behalf of the Commonwealth or an authority of the Commonwealth (the Commonwealth entity); and (ii) which the foreign entity advises the Commonwealth entity is still confidential; and (iii) the confidentiality of which it would be reasonable to maintain', 'source': 'act'},
+    '33(1)(b)': {'definition': 'contains information or matter: (i) that was communicated in confidence by, or on behalf of, a foreign government, an authority of a foreign government or an international organisation (the foreign entity) to the Government of the Commonwealth, to an authority of the Commonwealth or to a person who received the communication on behalf of the Commonwealth or an authority of the Commonwealth (the Commonwealth entity); and (ii) which the foreign entity advises the Commonwealth entity is still confidential; and (iii) the confidentiality of which it would be reasonable to maintain', 'source': 'act'},
     '33(1)(c)': {'definition': 'contains information or matter the disclosure of which under this Act would have a substantial adverse effect on the financial or property interests of the Commonwealth or of a Commonwealth institution and would not, on balance, be in the public interest', 'source': 'act'},
     '33(1)(d)': {'definition': 'contains information or matter the disclosure of which under this Act would constitute a breach of confidence', 'source': 'act'},
     '33(1)(e)(i)': {'definition': 'contains information or matter the disclosure of which under this Act would, or could reasonably be expected to prejudice the conduct of an investigation of a breach, or possible breach, of the law, or a failure, or possible failure, to comply with a law relating to taxation or prejudice the enforcement or proper administration of the law in a particular instance', 'source': 'act'},
@@ -156,6 +157,23 @@ def get_ages():
     return render_template('ages.html', years=years, data=data, open_data=open_data, now=now, open_total=open_total, total=total)
 
 
+@app.route('/decisions/')
+def get_decisions():
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    years = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'decision_totals'})
+    x = []
+    y = []
+    text = []
+    for year in years['results']:
+        y.append(year['total'])
+        x.append(year['year'])
+        text.append('{} files were closed'.format(year['total']))
+    data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
+    return render_template('decisions.html', years=years, data=data)
+
+
 @app.route('/reasons/')
 def get_reasons():
     harvest = request.args.get('harvest', None)
@@ -172,6 +190,35 @@ def get_reasons():
         text.append('{} closed files'.format(reason['total']))
     data = [{'x': x[::-1], 'y': y[::-1], 'text': text[::-1], 'hoverinfo': 'y+text', 'type': 'bar', 'orientation': 'h', 'marker': {'color': '#800080'}}]
     return render_template('reasons.html', reasons=reasons, data=data)
+
+
+@app.route('/decisions/<year>/')
+def get_decision(year):
+    harvest = request.args.get('harvest', None)
+    harvest_date = convert_harvest_date(harvest)
+    db = get_db()
+    decision = db.aggregates.find_one({'harvest_date': harvest_date, 'decision_year': int(year)})
+    x = []
+    y = []
+    text = []
+    for month in decision['months']:
+        y.append(month['total'])
+        x.append(calendar.month_name[month['month']])
+        text.append('{} files closed'.format(month['total']))
+    month_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'x+text', 'type': 'bar', 'marker': {'color': '#800080'}}]
+    x = []
+    y = []
+    text = []
+    for index, reason in enumerate(decision['reasons']):
+        decision['reasons'][index]['definition'] = REASONS[reason['reason']]['definition']
+        y.append(reason['reason'])
+        x.append(reason['total'])
+        text.append('{} closed files'.format(reason['total']))
+    reasons_data = [{'x': x[::-1], 'y': y[::-1], 'text': text[::-1], 'hoverinfo': 'y+text', 'type': 'bar', 'orientation': 'h', 'marker': {'color': '#800080'}}]
+    start_date = datetime.datetime(int(year), 1, 1)
+    end_date = datetime.datetime(int(year), 12, 31)
+    items = db.items.find({'random_id': {'$near': [random.random(), 0]}, 'access_decision.start_date.date': {'$gte': start_date, '$lte': end_date}, 'harvests': harvest_date}).limit(20)
+    return render_template('decision.html', decision=decision, harvest=harvest_date, month_data=month_data, reasons_data=reasons_data, items=items)
 
 
 @app.route('/reasons/<reason_id>/')

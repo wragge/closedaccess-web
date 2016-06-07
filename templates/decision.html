@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block extrameta %}
+<title>Series details ::  :: Closed Access</title>
+<meta property="og:title" content="Series details ::  :: Closed Access" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://closedaccess.herokuapp.com/decisions/{{ decision.decision_year }}/" />
+<meta property="og:image" content="http://closedaccess.herokuapp.com/static/images/series.png" />
+<meta property="og:site_name" content="Closed Access" />
+<meta property="og:description" content="Details of series  which contains  closed files." />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wragge">
+<meta name="twitter:creator" content="@wragge">
+{% endblock %}
+{% block content %}
+      
+          <h1 class="page-header">Access decisions in {{ decision.decision_year }}</h1>
+            <div class="placeholders row">
+              <div class="col-xs-6 col-sm-3 placeholder">
+                <a href="/items?series={{ decision.decision_year }}" class="circle-text closed">{{ decision.total }}</a> 
+                <h4>files</h4>
+                <span class="text-muted">were closed this year</span>
+              </div>
+              <div class="col-xs-6 col-sm-3 placeholder">
+                <a href="/items/?series=" class="circle-text">{{ decision.series|length }}</a>
+                <h4>series</h4>
+                <span class="text-muted">contain files closed this year</span>
+              </div>
+              <div class="col-xs-6 col-sm-3 placeholder">
+                <div class="circle-text">{{ decision.reasons|length }}</div>
+                <h4>reasons</h4>
+                <span class="text-muted">are cited by decisions made this year</span>
+              </div>
+              <div class="col-xs-6 col-sm-3 placeholder">
+                <div class="circle-text">{{ decision.average_age|round|int }}</div>
+                <h4>years</h4>
+                <span class="text-muted">is the average age of files closed this year, based on the date of their earliest content</span>
+              </div>
+            </div>
+            <div class="question">
+              <h3>When were decisions made to close files?<br><small>Click to view files</small></h3>
+              <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
+              <div class="pull-right{% if not dodgy %} hidden{% endif %}">
+                <button id="hideDates1" class="btn btn-primary btn-xs">Hide dodgy dates</button>
+                <button id="showDates1" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+              </div>
+            </div>
+            <div class="question">
+              <h3>What reasons were cited for closing files this year?<br><small>Click to view files</small></h3>
+              <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
+            </div>
+            <h3 class="sub-header">Here's some examples of files closed this year&hellip;</h3>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Series</th>
+                    <th>Control Symbol</th>
+                    <th>Title</th>
+                    <th>Contents dates</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                  <tr>
+                    <td>{{ item.series }}</td>
+                    <td>{{ item.control_symbol}}</td>
+                    <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
+                    <td>{{ item.contents_dates.date_str }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          
+
+
+{% endblock %}
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+
+            var layout2 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: {% if decision.reasons|length < 4 %}300{% else %}{{ decision.reasons|length * 50 }}{% endif %}, 
+                            margin: {l: 180, t: 30},
+                            bargap: 0.1,
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            }
+                        };
+            Plotly.newPlot('reasons', {{ reasons_data|tojson|safe }}, layout2);
+            $('#reasons').on('plotly_click', function(event, data) {
+                var year = {{ decision.decision_year }};
+                var reason = data.points[0].data.y[data.points[0].pointNumber];
+                window.location.href = '/items/?decision_after=' + year + '-01-01&decision_before=' + year + '-12-31&reasons=' + reason;
+                //$scope.$apply();
+            });
+
+            var layout3 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            margin: {t: 30, b: 40, l: 100},
+                            height: 500
+                        };
+            
+            var data = {{ month_data|tojson|safe }}
+            Plotly.newPlot('years', data, layout3);
+            $('#years').on('plotly_click', function(event, data) {
+                var year = {{ decision.decision_year }};
+                var month = data.points[0].data.x[data.points[0].pointNumber];
+                //month = new Date(Date.parse(month +" 1, 2012")).getMonth()+1;
+                var start = new Date(month + " 1, " + year + " GMT");
+                var end = new Date(month + " 1, " + year + " GMT");
+                end.setMonth(end.getMonth() + 1);
+                end.setDate(0);
+                window.location.href = '/items/?decision_after=' + start.toISOString().substring(0, 10) + '&decision_before=' + end.toISOString().substring(0, 10) + '&sort=decisions';
+                //$scope.$apply();
+            });
+            $('#hideDates1').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                var newdata = JSON.parse(JSON.stringify(data));
+                newdata[0].x = newdata[0].x.slice(1);
+                newdata[0].y = newdata[0].y.slice(1);
+                newdata[0].text = newdata[0].text.slice(1);
+                Plotly.newPlot('years', newdata, layout3);
+                $('#hideDates1').toggleClass('disabled');
+                $('#showDates1').toggleClass('disabled');
+              }
+            });
+            $('#showDates1').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                Plotly.newPlot('years', data, layout3);
+                $('#hideDates1').toggleClass('disabled');
+                $('#showDates1').toggleClass('disabled');
+              }
+            });
+
+          </script>
+{% endblock %}

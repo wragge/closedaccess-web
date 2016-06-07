@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block extrameta %}
+<title>Decision dates :: Closed Access</title>
+<meta property="og:title" content="Ages :: Closed Access" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://closedaccess.herokuapp.com/ages/" />
+<meta property="og:image" content="http://closedaccess.herokuapp.com/static/images/ages.png" />
+<meta property="og:site_name" content="Closed Access" />
+<meta property="og:description" content="Browse closed files through the dates they were created." />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wragge">
+<meta name="twitter:creator" content="@wragge">
+{% endblock %}
+{% block content %}
+      
+          <h1 class="page-header">Decisions</h1>
+          <div class="question">
+            <h3>How many files were closed each year?</h3>
+            
+            <div id="years"><!-- Plotly chart will be drawn inside this DIV --></div>
+
+            <div class="pull-right">
+              <button id="hideDates1" class="btn btn-primary btn-xs">Hide dodgy dates</button>
+              <button id="showDates1" class="btn btn-primary btn-xs disabled">Show dodgy dates</button>
+            </div>
+          </div>
+
+{% endblock %}
+{% block extrascripts %}
+        <script>
+            <!-- JAVASCRIPT CODE GOES HERE -->
+            var layout1 = {
+                            font: { family: "Helvetica Neue", color: '#333333'},
+                            height: 500, 
+                            margin: {l: 100, t: 30, b: 40},
+                            yaxis: {
+                                ticksuffix: ' '
+
+                            }
+                        };
+            var data = {{ data|tojson|safe }}
+            Plotly.newPlot('years', data, layout1);
+            $('#years').on('plotly_click', function(event, data) {
+                var year = data.points[0].data.x[data.points[0].pointNumber];
+                window.location.href = '/decisions/' + year + '/';
+                //$scope.$apply();
+            });
+            $('#hideDates1').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                var newdata = JSON.parse(JSON.stringify(data));
+                newdata[0].x = newdata[0].x.slice(2);
+                newdata[0].y = newdata[0].y.slice(2);
+                newdata[0].text = newdata[0].text.slice(2);
+                Plotly.newPlot('years', newdata, layout1);
+                $('#hideDates1').toggleClass('disabled');
+                $('#showDates1').toggleClass('disabled');
+              }
+            });
+            $('#showDates1').click(function() {
+              if (!$(this).hasClass('disabled')) {
+                Plotly.newPlot('years', data, layout1);
+                $('#hideDates1').toggleClass('disabled');
+                $('#showDates1').toggleClass('disabled');
+              }
+            });
+
+          </script>
+{% endblock %}
