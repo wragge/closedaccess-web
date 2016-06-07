@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block extrameta %}
 <title>Series details ::  :: Closed Access</title>
-<meta property="og:title" content="Series details ::  :: Closed Access" />
+<meta property="og:title" content="Access decisions made in {{ decision.decision_year }} :: Closed Access" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://closedaccess.herokuapp.com/decisions/{{ decision.decision_year }}/" />
 <meta property="og:image" content="http://closedaccess.herokuapp.com/static/images/series.png" />
 <meta property="og:site_name" content="Closed Access" />
-<meta property="og:description" content="Details of series  which contains  closed files." />
+<meta property="og:description" content="Details of access decisions made in {{ decision.decision_year }} that resulted in closed files." />
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wragge">
 <meta name="twitter:creator" content="@wragge">
