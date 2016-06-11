@@ -180,16 +180,31 @@ def get_reasons():
     harvest_date = convert_harvest_date(harvest)
     db = get_db()
     reasons = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})
+    years = [year for year in range(1900, DEFAULT_HARVEST_DATE.year)]
+    labels = [reason['reason'] for reason in reasons['results']]
     x = []
     y = []
     text = []
+    z = []
     for index, reason in enumerate(reasons['results']):
         reasons['results'][index]['definition'] = REASONS[reason['reason']]['definition']
         y.append(reason['reason'])
         x.append(reason['total'])
         text.append('{} closed files'.format(reason['total']))
+        reason_data = db.aggregates.find_one({'harvest_date': harvest_date, 'reason': reason['reason']})
+        row_data = []
+        for year in years:
+            for ryear in reason_data['year_totals']:
+                if ryear['year'] == year:
+                    value = ryear['total']
+                    break
+                else:
+                    value = 0
+            row_data.append(value)
+        z.append(row_data)
     data = [{'x': x[::-1], 'y': y[::-1], 'text': text[::-1], 'hoverinfo': 'y+text', 'type': 'bar', 'orientation': 'h', 'marker': {'color': '#800080'}}]
-    return render_template('reasons.html', reasons=reasons, data=data)
+    heat_data = [{'x': years, 'y': labels, 'z': z, 'type': 'heatmap', 'colorscale': [[0, "rgb(255, 255, 255)"], [1, "rgb(128, 0, 128)"]], 'colorbar': {'thickness': 15}}]
+    return render_template('reasons.html', reasons=reasons, data=data, heat_data=heat_data)
 
 
 @app.route('/decisions/<year>/')

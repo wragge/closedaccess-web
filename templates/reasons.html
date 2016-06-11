@@ -18,13 +18,17 @@
             <li role="presentation" class="active"><a href="#chart" aria-controls="chart" role="tab" data-toggle="tab"><i class="fa fa-bar-chart"></i></a></li>
             <li role="presentation"><a href="#list" aria-controls="list" role="tab" data-toggle="tab"><i class="fa fa-th-list"></i></a></li>
           </ul>
-          <h2>These are the reasons why you're not allowed to see closed files.</h2>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="chart">
+              <h2>These are the reasons why you're not allowed to see closed files.</h2>
                 <p class="muted"><small id="hover-info">Click on a bar for more information</small></p>
                 <div id="reasons"><!-- Plotly chart will be drawn inside this DIV --></div>
+              <h2>Here are the number of closed files per year for each reason.</h2>
+                <p class="muted"><small id="hover-info">Click on the chart for a list of files.</small></p>
+                <div id="heatmap"><!-- Plotly chart will be drawn inside this DIV --></div>
             </div>
             <div role="tabpanel" class="tab-pane" id="list">
+            <h2>These are the reasons why you're not allowed to see closed files.</h2>
                 <div class="table-responsive item-reasons">
                     <table class="table">
                       <tbody>
@@ -70,6 +74,26 @@
                 window.location.href = '/reasons/' + reason;
                 //$scope.$apply();
             });
-
+            var layout2 = {
+              font: { family: "Helvetica Neue", color: '#333333'},
+              height: 1000, 
+              margin: {l: 150, t: 20},
+              yaxis: {
+                ticksuffix: ' ',
+                ticklen: 0
+              },
+              xaxis: {
+                type:"log"
+              }
+            }
+            Plotly.newPlot('heatmap', {{ heat_data|tojson|safe }}, layout2);
+            $('#heatmap').on('plotly_click', function(event, data) {
+                console.log(data.points[0].pointNumber);
+                var reason = data.points[0].data.y[data.points[0].pointNumber[0]];
+                var year = data.points[0].data.x[data.points[0].pointNumber[1]];
+                console.log(reason);
+                window.location.href = '/items/?reasons=' + reason + '&sort=oldest&content_year=' + year;
+                //$scope.$apply();
+            });
           </script>
 {% endblock %}
