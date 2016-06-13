@@ -46,7 +46,7 @@
                   <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
                   <td>{{ item.contents_dates.date_str }}</td>
                   <td>{{ item.access_decision.date_str }}</td>
-                  <td><span class="label {% if item.age > 79 %}label-danger{% elif item.age > 50 %}label-warning{% else %}label-default{% endif %}">{{ item.age }}</span> years</td>
+                  <td><span class="label {% if item.age > 79 %}label-danger{% elif item.age > 50 %}label-warning{% elif item.age > 20 %}label-info{% else %}label-default{% endif %}">{{ item.age }}</span> years</td>
                 </tr>
               {% endfor %}
               </tbody>
