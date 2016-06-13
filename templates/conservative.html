@@ -15,7 +15,7 @@
 {% block content %}
       
           <h1 class="page-header">Most conservative decisions?</h1>
-          {% if reason %}<h2>Closed files that cite &lsquo;{{ reason }}&rsquo;</h2>{% endif %}
+          {% if reason %}<h2>Closed files that cite &lsquo;<a href="/reasons/{{ reason }}/">{{ reason }}</a>&rsquo;</h2>{% endif %}
           <p class="lead">These are the files that have the biggest gap between the date the decision was made to close the file and the date of the latest content in the file. You would think that the older a file is, the less likely it would be closed. Is that true?</p>
           <div class="form-group">
             <label for="reasons">Select a reason</label>
