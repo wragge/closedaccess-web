@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block extrameta %}
+<title>Search for files :: Closed Access</title>
+<meta property="og:title" content="Search for files :: Closed Access" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://closedaccess.herokuapp.com/items/" />
+<meta property="og:image" content="http://closedaccess.herokuapp.com/static/images/files.png" />
+<meta property="og:site_name" content="Closed Access" />
+<meta property="og:description" content="Search for files held by the National Archives of Australia with the access status of closed." />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wragge">
+<meta name="twitter:creator" content="@wragge">
+
+{% endblock %}
+{% block content %}
+      
+          <h1 class="page-header">Most conservative decisions?</h1>
+          {% if reason %}<h2>Closed files that cite &lsquo;{{ reason }}&rsquo;</h2>{% endif %}
+          <p class="lead">These are the files that have the biggest gap between the date the decision was made to close the file and the date of the latest content in the file. You would think that the older a file is, the less likely it would be closed. Is that true?</p>
+          <div class="form-group">
+            <label for="reasons">Select a reason</label>
+            <select id="reasons" name="reasons" class="form-control">
+            <option>Any</option>
+            {% for option in reasons %}
+              <option{% if option.reason == reason %} selected="selected"{% endif %}>{{ option.reason }}</option>
+            {% endfor %}
+            </select>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Series</th>
+                  <th>Control Symbol</th>
+                  <th>Title</th>
+                  <th>Contents dates</th>
+                  <th>Decision date</th>
+                  <th>Age at decision</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for item in items %}
+                <tr>
+                  <td>{{ item.series }}</td>
+                  <td>{{ item.control_symbol}}</td>
+                  <td><a href="/items/{{ item.identifier }}/">{{ item.title }}</a></td>
+                  <td>{{ item.contents_dates.date_str }}</td>
+                  <td>{{ item.access_decision.date_str }}</td>
+                  <td>{{ item.age }} years</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+{% endblock %}
+{% block extrascripts %}
+<script>
+  $('#reasons').on('change', function() {
+    if (this.value == 'Any') {
+      window.location = '/mostconservative/';
+    } else {
+      window.location = '/mostconservative/' + this.value + '/';
+    }
+  });
+</script>  
+{% endblock %}

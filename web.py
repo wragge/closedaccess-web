@@ -484,10 +484,10 @@ def get_item(id):
     end = item['contents_dates']['end_date']['date']
     decision = item['access_decision']['start_date']['date']
     now = datetime.datetime.now()
-    item['age'] = (now-start).days/365
+    item['age'] = (now - start).days / 365
     if (now.year - end.year) > 21:
         item['open_period'] = True
-    item['decision_age'] = (now-decision).days/float(365)
+    item['decision_age'] = (now - decision).days / float(365)
     return render_template('item.html', item=item, harvest=harvest_date)
 
 
@@ -496,6 +496,40 @@ def get_harvests():
     db = get_db()
     harvests = list(db.harvests.find().sort('harvest_date', -1))
     return render_template('harvests.html', harvests=harvests)
+
+
+@app.route('/mostconservative/<reason>/')
+def get_most_conservative_reason(reason):
+    db = get_db()
+    harvest_date = convert_harvest_date()
+    reasons_list = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})['results']
+    pipeline = [
+        {"$match": {'harvests': harvest_date, 'reasons': reason, 'contents_dates.end_date.date': {'$gt': datetime.datetime(1800, 12, 31)}}},
+        {'$project': {'identifier': 1, 'series': 1, 'control_symbol': 1, 'title': 1, 'reasons': 1, 'contents_dates': 1, 'access_decision': 1, 'age': {'$subtract': ['$access_decision.start_date.date', '$contents_dates.end_date.date']}}},
+        {'$sort': {'age': -1}},
+        {'$limit': 50}
+    ]
+    items = list(db.items.aggregate(pipeline))
+    for item in items:
+        item['age'] = datetime.timedelta(milliseconds=item['age']).days / 365
+    return render_template('conservative.html', items=items, harvest=harvest_date, reason=reason, reasons=reasons_list)
+
+
+@app.route('/mostconservative/')
+def get_most_conservative():
+    db = get_db()
+    harvest_date = convert_harvest_date()
+    reasons_list = db.aggregates.find_one({'harvest_date': harvest_date, 'agg_type': 'reason_totals'})['results']
+    pipeline = [
+        {"$match": {'harvests': harvest_date, 'contents_dates.end_date.date': {'$gt': datetime.datetime(1800, 12, 31)}}},
+        {'$project': {'identifier': 1, 'series': 1, 'control_symbol': 1, 'title': 1, 'reasons': 1, 'contents_dates': 1, 'access_decision': 1, 'age': {'$subtract': ['$access_decision.start_date.date', '$contents_dates.end_date.date']}}},
+        {'$sort': {'age': -1}},
+        {'$limit': 100}
+    ]
+    items = list(db.items.aggregate(pipeline))
+    for item in items:
+        item['age'] = datetime.timedelta(milliseconds=item['age']).days / 365
+    return render_template('conservative.html', items=items, harvest=harvest_date, reasons=reasons_list)
 
 
 class GetItems(Resource):
