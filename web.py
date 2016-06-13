@@ -507,7 +507,7 @@ def get_most_conservative_reason(reason):
         {"$match": {'harvests': harvest_date, 'reasons': reason, 'contents_dates.end_date.date': {'$gt': datetime.datetime(1800, 12, 31)}}},
         {'$project': {'identifier': 1, 'series': 1, 'control_symbol': 1, 'title': 1, 'reasons': 1, 'contents_dates': 1, 'access_decision': 1, 'age': {'$subtract': ['$access_decision.start_date.date', '$contents_dates.end_date.date']}}},
         {'$sort': {'age': -1}},
-        {'$limit': 50}
+        {'$limit': 100}
     ]
     items = list(db.items.aggregate(pipeline))
     for item in items:
