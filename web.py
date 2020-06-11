@@ -2,8 +2,8 @@ from flask import Flask, request, render_template
 from flask_restful import Resource, Api
 from pymongo import MongoClient, GEO2D
 from flask_restful import fields, marshal_with, reqparse, inputs
-from flask.ext.restful.utils import cors
-from flask.ext.paginate import Pagination
+from flask_restful.utils import cors
+from flask_paginate import Pagination
 import random
 from bson.son import SON
 import os
@@ -151,9 +151,9 @@ def get_ages():
         text.append('{} ({:.2f}%) closed files are more than {} years old'.format(new_total, (new_total / float(total)) * 100, now - year['year']))
     open_data = [{'x': x, 'y': y, 'text': text, 'hoverinfo': 'text', 'fill': 'tozeroy', 'type': 'scatter', 'marker': {'color': '#800080'}}]
     open_date = datetime.datetime(now - 21, 12, 31, 0, 0, 0)
-    print open_date
+    print(open_date)
     open_total = db.items.find({'harvests': harvest_date, 'contents_dates.end_date.date': {'$lte': open_date}}).count()
-    print open_total
+    print(open_total)
     return render_template('ages.html', years=years, data=data, open_data=open_data, now=now, open_total=open_total, total=total)
 
 
@@ -552,7 +552,7 @@ class GetItems(Resource):
         else:
             number = args['n']
         query = {}
-        print args
+        print(args)
         if args['contents_year']:
             contents_date = datetime.datetime(args['contents_year'], 1, 1, 0, 0, 0)
             query['contents_dates.start_date.date'] = {'$lte': contents_date}
